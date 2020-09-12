@@ -122,18 +122,18 @@ def add_knobs(door_faces, door_thickness, knob_type, hinge, flip=False):
         door_width,_ = calc_face_dimensions(door_face)
         if hinge == "LEFT":
             if flip:
-                knob_origin_front = - xyz[0] * (door_width-0.06) + xyz[1] * 1.0 + xyz[2] * door_thickness
-                knob_origin_back = - xyz[0] * (door_width-0.06) + xyz[1] * 1.0
+                knob_origin_front = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
+                knob_origin_back = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9
             else:
-                knob_origin_front = xyz[0] * (door_width-0.06) + xyz[1] * 1.0 + xyz[2] * door_thickness
-                knob_origin_back = xyz[0] * (door_width-0.06) + xyz[1] * 1.0
+                knob_origin_front = xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
+                knob_origin_back = xyz[0] * (door_width-0.06) + xyz[1] * 0.9
         elif hinge == "RIGHT":
             if flip:
-                knob_origin_front = xyz[0] * (door_width-0.06) + xyz[1] * 1.0 + xyz[2] * door_thickness
-                knob_origin_back = xyz[0] * (door_width-0.06) + xyz[1] * 1.0
+                knob_origin_front = xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
+                knob_origin_back = xyz[0] * (door_width-0.06) + xyz[1] * 0.9
             else:
-                knob_origin_front = - xyz[0] * (door_width-0.06) + xyz[1] * 1.0 + xyz[2] * door_thickness
-                knob_origin_back = - xyz[0] * (door_width-0.06) + xyz[1] * 1.0
+                knob_origin_front = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
+                knob_origin_back = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9
         if flip:
             if hinge == "LEFT":
                 knob_front_scale = (1,-1,-1)
