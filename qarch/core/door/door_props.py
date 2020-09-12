@@ -35,7 +35,7 @@ class DoorProperty(bpy.types.PropertyGroup):
         name="Bottom Panel Height",
         min=0.2,
         max=2.0,
-        default=1.0,
+        default=0.9,
         unit="LENGTH",
         description="Height of bottom panel",
     )
