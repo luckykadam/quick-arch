@@ -123,7 +123,7 @@ class FillGlassPanes(bpy.types.PropertyGroup):
         step=1,
         min=0.01,
         max=0.1,
-        default=0.01,
+        default=0.002,
         unit="LENGTH",
         description="Thickness of glass",
     )
