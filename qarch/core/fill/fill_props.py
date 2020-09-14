@@ -94,7 +94,7 @@ class FillGlassPanes(bpy.types.PropertyGroup):
         name="Pane Border",
         min=0.01,
         max=1.0,
-        default=0.02,
+        default=0.01,
         unit="LENGTH",
         description="Borders of each pane",
     )
