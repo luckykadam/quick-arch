@@ -413,3 +413,6 @@ def managed_bmesh_edit(edit_object):
         yield bm
     finally:
         bmesh.update_edit_mesh(edit_object.data, True)
+
+def shrink_face(bm, face, thickness):
+    bmesh.ops.delete(bm, geom=bmesh.ops.inset_individual(bm, faces=[face], thickness=thickness, use_even_offset=True)["faces"], context="FACES")

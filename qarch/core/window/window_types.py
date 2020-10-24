@@ -24,6 +24,7 @@ from ...utils import (
     import_obj,
     local_xyz,
     align_obj,
+    shrink_face,
 )
 from ..frame import create_multigroup_hole, create_multigroup_frame_and_dw
 from ..validations import validate, some_selection, ngon_validation, same_dimensions
@@ -89,6 +90,7 @@ def fill_window(window, prop):
     """
     with managed_bmesh(window) as bm:
         face = bm.faces[0]
+        shrink_face(bm, face, 0.002)
 
         # validate_fill_props(prop)
         back, surrounding, front = extrude_face_region(bm, [face], prop.window.thickness, -face.normal, keep_original=True)

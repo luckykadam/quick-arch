@@ -24,6 +24,7 @@ from ...utils import (
     import_obj,
     local_xyz,
     align_obj,
+    shrink_face,
 )
 
 from ..frame import create_multigroup_hole, create_multigroup_frame_and_dw
@@ -82,7 +83,7 @@ def fill_door(door, prop):
     """
     with managed_bmesh(door) as bm:
         face = bm.faces[0]
-
+        shrink_face(bm, face, 0.002)
         # validate_fill_props(prop)
         back, surrounding, front = extrude_face_region(bm, [face], prop.door.thickness, -face.normal, keep_original=True)
         bmesh.ops.reverse_faces(bm, faces=front+surrounding+back)
