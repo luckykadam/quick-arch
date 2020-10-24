@@ -6,5 +6,5 @@ fi
 
 echo "preparing release $1"
 
-addon_zip="Quick Arch $1 - Do not Unzip!.zip"
+addon_zip="Quick Arch $1 - Do not unzip!.zip"
 zip -r "$addon_zip" qarch
