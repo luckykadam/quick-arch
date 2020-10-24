@@ -107,12 +107,13 @@ def add_frame_thickness(bm, frames, frame_inner_edges, frame_thickness, border_t
     a,b,c = extrude_face_region(bm, frames, frame_thickness, normal, keep_original=True)
     frame_faces = a+b+c
     # add frame border
+    flattened_dws = [dw['type'] for dw in dws for i in range(dw['count'])]
     if not equal(border_thickness, 0):
-        for dw,inner_edges in zip(dws,frame_inner_edges):
+        for dw,inner_edges in zip(flattened_dws,frame_inner_edges):
             inner_faces = list({f for e in inner_edges for f in e.link_faces if equal(f.normal.dot(normal),0)})
-            if dw['type']=='door':
+            if dw=='door':
                 frame_faces += add_border(bm, inner_faces, frame_thickness-door_prop.thickness, border_thickness, normal if not door_prop.flip_direction else -normal)
-            elif dw['type']=='window':
+            elif dw=='window':
                 frame_faces += add_border(bm, inner_faces, frame_thickness-window_prop.thickness, border_thickness, normal if not window_prop.flip_direction else -normal)
     return frame_faces
 
