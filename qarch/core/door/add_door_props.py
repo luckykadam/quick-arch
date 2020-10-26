@@ -9,6 +9,7 @@ from ...utils import get_limits, infer_values
 class AddDoorProperty(bpy.types.PropertyGroup):
 
     count: CountProperty
+    only_hole: BoolProperty(name="Only hole", default=False, description="Only hole. No door/frame")
     # arch: PointerProperty(type=ArchProperty)
     size_offset: PointerProperty(type=SizeOffsetProperty)
     frame: PointerProperty(type=FrameProperty)
@@ -30,25 +31,30 @@ class AddDoorProperty(bpy.types.PropertyGroup):
 
         self.size_offset.draw(context, layout)
 
-        layout.separator()
-        col = layout.column()
-        col.label(text="Frame")
-        self.frame.draw(context, col)
-
-        layout.separator()
-        col = layout.column()
-        col.label(text="Door")
-        self.door.draw(context, col)
-
-        layout.separator()
         col = layout.column(align=True)
-        if not self.infer_values_switch:
-            col.prop(self, "infer_values_switch", icon="RIGHTARROW", emboss=False)
-        else:
-            col.prop(self, "infer_values_switch", icon="DOWNARROW_HLT", emboss=False)
-            values = infer_values(self, "d")
-            filtered_values = {k:v for k,v in values.items() if k.startswith("Door")}
-            for key,value in filtered_values.items():
-                row = col.row(align=True)
-                row.label(text=str(key))
-                row.label(text=str(value))
+        col.prop(self, "only_hole")
+
+        if not self.only_hole:
+
+            layout.separator()
+            col = layout.column()
+            col.label(text="Frame")
+            self.frame.draw(context, col)
+
+            layout.separator()
+            col = layout.column()
+            col.label(text="Door")
+            self.door.draw(context, col)
+
+            layout.separator()
+            col = layout.column(align=True)
+            if not self.infer_values_switch:
+                col.prop(self, "infer_values_switch", icon="RIGHTARROW", emboss=False)
+            else:
+                col.prop(self, "infer_values_switch", icon="DOWNARROW_HLT", emboss=False)
+                values = infer_values(self, "d")
+                filtered_values = {k:v for k,v in values.items() if k.startswith("Door")}
+                for key,value in filtered_values.items():
+                    row = col.row(align=True)
+                    row.label(text=str(key))
+                    row.label(text=str(value))

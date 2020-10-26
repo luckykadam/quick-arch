@@ -56,32 +56,35 @@ def create_window(bm, faces, prop):
         for aface in array_faces:
             normal = aface.normal.copy()
             face = create_multigroup_hole(bm, aface, prop.size_offset.size, prop.size_offset.offset, 'w', 1, prop.frame.margin, prop.frame.depth)[0]
-            _, (window_faces,bar_faces,window_origins), (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, [face], prop.frame, 'w', None, prop.window)
-            handles,handle_origins,handle_scales = add_handles(window_faces, prop.window.thickness, prop.window.handle, prop.window.hinge, prop.window.flip_direction)
-            window = split_faces(bm, [[window_faces[0]]], ["Window" for f in window_faces])[0]
-            frame = split_faces(bm, [frame_faces], ["Frame"])[0]
-            # link objects and set origins
-            link_objects([frame], bpy.context.object)
-            link_objects([window], frame)
-            link_objects(handles[0], window)
-            set_origin(frame, frame_origin)
-            set_origin(window, window_origins[0], frame_origin)
+            if prop.only_hole:
+                bmesh.ops.delete(bm, geom=[face], context="FACES")
+            else:
+                _, (window_faces,bar_faces,window_origins), (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, [face], prop.frame, 'w', None, prop.window)
+                handles,handle_origins,handle_scales = add_handles(window_faces, prop.window.thickness, prop.window.handle, prop.window.hinge, prop.window.flip_direction)
+                window = split_faces(bm, [[window_faces[0]]], ["Window" for f in window_faces])[0]
+                frame = split_faces(bm, [frame_faces], ["Frame"])[0]
+                # link objects and set origins
+                link_objects([frame], bpy.context.object)
+                link_objects([window], frame)
+                link_objects(handles[0], window)
+                set_origin(frame, frame_origin)
+                set_origin(window, window_origins[0], frame_origin)
 
-            # create bars
-            if prop.window.add_bars:
-                bars = split_faces(bm, [bar_faces], ["Bars"])[0]
-                link_objects([bars], frame)
-                set_origin(bars, window_origins[0], frame_origin)
-                with managed_bmesh(bars) as bm:
-                    fill_bars(bm, bars, bm.faces[0], prop.window.bars)
+                # create bars
+                if prop.window.add_bars:
+                    bars = split_faces(bm, [bar_faces], ["Bars"])[0]
+                    link_objects([bars], frame)
+                    set_origin(bars, window_origins[0], frame_origin)
+                    with managed_bmesh(bars) as bm:
+                        fill_bars(bm, bars, bm.faces[0], prop.window.bars)
 
-            # set handle origin, rotations and scale
-            for handle,origin,scale in zip(handles[0],handle_origins[0],handle_scales[0]):
-                handle.matrix_local.translation = origin
-                align_obj(handle, normal)
-                handle.scale = scale
+                # set handle origin, rotations and scale
+                for handle,origin,scale in zip(handles[0],handle_origins[0],handle_scales[0]):
+                    handle.matrix_local.translation = origin
+                    align_obj(handle, normal)
+                    handle.scale = scale
 
-            fill_window(window, prop)
+                fill_window(window, prop)
     return True
 
 

@@ -57,24 +57,27 @@ def create_door(bm, faces, prop):
         for aface in array_faces:
             normal = aface.normal.copy()
             face = create_multigroup_hole(bm, aface, prop.size_offset.size, prop.size_offset.offset, 'd', 1, prop.frame.margin, prop.frame.depth)[0]
-            (door_faces,door_origins), _, (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, [face], prop.frame, 'd', prop.door, None)
-            knobs,knob_origins,knob_scales = add_knobs(door_faces, prop.door.thickness, prop.door.knob, prop.door.hinge, prop.door.flip_direction)
-            door = split_faces(bm, [[door_faces[0]]], ["Door" for f in door_faces])[0]
-            frame = split_faces(bm, [frame_faces], ["Frame"])[0]
-            # link objects and set origins
-            link_objects([frame], bpy.context.object)
-            link_objects([door], frame)
-            set_origin(frame, frame_origin)
-            set_origin(door, door_origins[0], frame_origin)
+            if prop.only_hole:
+                bmesh.ops.delete(bm, geom=[face], context="FACES")
+            else:
+                (door_faces,door_origins), _, (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, [face], prop.frame, 'd', prop.door, None)
+                knobs,knob_origins,knob_scales = add_knobs(door_faces, prop.door.thickness, prop.door.knob, prop.door.hinge, prop.door.flip_direction)
+                door = split_faces(bm, [[door_faces[0]]], ["Door" for f in door_faces])[0]
+                frame = split_faces(bm, [frame_faces], ["Frame"])[0]
+                # link objects and set origins
+                link_objects([frame], bpy.context.object)
+                link_objects([door], frame)
+                set_origin(frame, frame_origin)
+                set_origin(door, door_origins[0], frame_origin)
 
-            # set knob origin, rotations and scale
-            for knob,origin,scale in zip(knobs[0],knob_origins[0],knob_scales[0]):
-                link_objects([knob], door)
-                knob.matrix_local.translation = origin
-                align_obj(knob, normal)
-                knob.scale = scale
+                # set knob origin, rotations and scale
+                for knob,origin,scale in zip(knobs[0],knob_origins[0],knob_scales[0]):
+                    link_objects([knob], door)
+                    knob.matrix_local.translation = origin
+                    align_obj(knob, normal)
+                    knob.scale = scale
 
-            fill_door(door, prop)
+                fill_door(door, prop)
     return True
 
 
