@@ -1,6 +1,7 @@
 import bpy
-from bpy.props import IntProperty, FloatProperty, BoolProperty
+from bpy.props import IntProperty, FloatProperty, BoolProperty, PointerProperty
 
+from ..roof import RoofProperty
 
 class FloorProperty(bpy.types.PropertyGroup):
     floor_count: IntProperty(
@@ -61,6 +62,9 @@ class FloorProperty(bpy.types.PropertyGroup):
         description="Thickness of walls",
     )
 
+    add_roof: BoolProperty(name="Add Roof", default=False)
+    roof_prop: PointerProperty(type=RoofProperty)
+
     def draw(self, context, layout):
 
         layout.separator()
@@ -80,3 +84,8 @@ class FloorProperty(bpy.types.PropertyGroup):
         row = col.row(align=True)
         row.prop(self, "slab_height")
         row.prop(self, "slab_outset")
+
+        col.separator()
+        col.prop(self, "add_roof")
+        if self.add_roof:
+            self.roof_prop.draw(context, col)

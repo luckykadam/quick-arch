@@ -1,5 +1,6 @@
 import bmesh
 from bmesh.types import BMFace
+from mathutils import Vector
 
 from ...utils import (
     FaceMap,
@@ -15,7 +16,7 @@ from ...utils import (
     deselect,
 )
 from ..validations import validate, some_selection, flat_face_validation
-from mathutils import Vector
+from ..roof.roof_types import create_roof
 
 
 @crash_safe
@@ -28,16 +29,20 @@ def build_floors(context, props):
     with managed_bmesh_edit(context.edit_object) as bm:
         faces = [f for f in bm.faces if f.select]
         deselect(faces)
-        create_floors(bm, faces, props)
+        top_faces = create_floors(bm, faces, props)
+        if props.add_roof:
+            create_roof(bm, top_faces, props.roof_prop)
     return {"FINISHED"}
 
 
 def create_floors(bm, faces, prop):
     """Create extrusions of floor geometry from a floorplan
     """
+    n_faces = len(faces)
     slabs, walls, ceils, floors = extrude_slabs_and_floors(bm, faces, prop)
 
     add_faces_to_map(bm, [slabs, walls, ceils, floors], [FaceMap.SLABS, FaceMap.WALLS, FaceMap.CEIL, FaceMap.FLOOR])
+    return ceils[-n_faces:]
 
 def extrude_slabs_and_floors(bm, faces, prop):
     """extrude edges alternating between slab and floor heights
