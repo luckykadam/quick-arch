@@ -61,23 +61,29 @@ def create_door(bm, faces, prop):
                 bmesh.ops.delete(bm, geom=[face], context="FACES")
             else:
                 (door_faces,door_origins), _, (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, [face], prop.frame, 'd', prop.door, None)
-                knobs,knob_origins,knob_scales = add_knobs(door_faces, prop.door.thickness, prop.door.knob, prop.door.hinge, prop.door.flip_direction)
-                door = split_faces(bm, [[door_faces[0]]], ["Door" for f in door_faces])[0]
+                knobs,knob_origins,knob_scales = add_knobs(door_faces, door_origins, prop.door.thickness, prop.door.knob, prop.door.flip_direction)
+                doors = split_faces(bm, [[f] for f in door_faces], ["Door" for f in door_faces])
                 frame = split_faces(bm, [frame_faces], ["Frame"])[0]
                 # link objects and set origins
                 link_objects([frame], bpy.context.object)
-                link_objects([door], frame)
+                link_objects(doors, frame)
+                for knob,door in zip(knobs,doors):
+                    link_objects(knob, door)
                 set_origin(frame, frame_origin)
-                set_origin(door, door_origins[0], frame_origin)
+                for door,origin in zip(doors,door_origins):
+                    set_origin(door, origin, frame_origin)
 
                 # set knob origin, rotations and scale
-                for knob,origin,scale in zip(knobs[0],knob_origins[0],knob_scales[0]):
-                    link_objects([knob], door)
-                    knob.matrix_local.translation = origin
-                    align_obj(knob, normal)
-                    knob.scale = scale
+                for knob,origin,scale in zip(knobs,knob_origins,knob_scales):
+                    knob[0].matrix_local.translation = origin[0]
+                    align_obj(knob[0], normal)
+                    knob[0].scale = scale[0]
+                    knob[1].matrix_local.translation = origin[1]
+                    align_obj(knob[1], normal)
+                    knob[1].scale = scale[1]
 
-                fill_door(door, prop)
+                for door in doors:
+                    fill_door(door, prop)
     return True
 
 
@@ -110,11 +116,11 @@ def validate_fill_props(prop):
         fill.louver_depth = min(fill.louver_depth, depth)
 
 
-def add_knobs(door_faces, door_thickness, knob_type, hinge, flip=False):
+def add_knobs(door_faces, door_origins, door_thickness, knob_type, flip=False):
     knobs = []
     knob_origins = []
     knob_scales = []
-    for door_face in door_faces:
+    for door_face,door_origin in zip(door_faces,door_origins):
         directory = Path(os.path.dirname(__file__)).parent.parent
         if knob_type == "ROUND":
             knob_front = import_obj(os.path.join(directory, 'assets', 'knob_round.obj'), "Knob")
@@ -124,34 +130,19 @@ def add_knobs(door_faces, door_thickness, knob_type, hinge, flip=False):
             knob_back = import_obj(os.path.join(directory, 'assets', 'knob_straight.obj'), "Knob")
         xyz = local_xyz(door_face)
         door_width,_ = calc_face_dimensions(door_face)
+        hinge = "LEFT" if local_xyz(door_face)[0].dot(door_origin-door_face.calc_center_median()) < 0 else "RIGHT"
         if hinge == "LEFT":
-            if flip:
-                knob_origin_front = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
-                knob_origin_back = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9
-            else:
-                knob_origin_front = xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
-                knob_origin_back = xyz[0] * (door_width-0.06) + xyz[1] * 0.9
+            knob_origin_front = xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
+            knob_origin_back = xyz[0] * (door_width-0.06) + xyz[1] * 0.9
         elif hinge == "RIGHT":
-            if flip:
-                knob_origin_front = xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
-                knob_origin_back = xyz[0] * (door_width-0.06) + xyz[1] * 0.9
-            else:
-                knob_origin_front = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
-                knob_origin_back = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9
+            knob_origin_front = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
+            knob_origin_back = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9
         if flip:
-            if hinge == "LEFT":
-                knob_front_scale = (1,-1,-1)
-                knob_back_scale = (1,-1,1)
-            else:
-                knob_front_scale = (1,1,-1)
-                knob_back_scale = (1,1,1)
+            knob_front_scale = (1,1,-1)
+            knob_back_scale = (1,1,1)
         else:
-            if hinge == "LEFT":
-                knob_front_scale = (1,-1,1)
-                knob_back_scale = (1,-1,-1)
-            else:
-                knob_front_scale = (1,1,1)
-                knob_back_scale = (1,1,-1)
+            knob_front_scale = (1,1,1)
+            knob_back_scale = (1,1,-1)
         knobs.append([knob_front,knob_back])
         knob_origins.append([knob_origin_front,knob_origin_back])
         knob_scales.append([knob_front_scale,knob_back_scale])

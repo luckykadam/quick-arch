@@ -40,20 +40,51 @@ def create_multigroup_frame_and_dw(bm, faces, frame_prop, components, door_prop,
     frame_origin = calc_edge_median(get_bottom_edges(list({e for f in faces for e in f.edges}))[0])
     door_faces, window_faces, frame_faces = create_frame(bm, faces, dws, frame_prop, door_prop, window_prop)
     bar_faces = [] if window_prop and not window_prop.add_bars else duplicate_faces(bm, window_faces)
-    door_origins = [
-        common_vert(
-            sort_edges(f.edges, x if door_prop.hinge=="LEFT" else -x)[0],
-            sort_edges(f.edges, y)[0]
-        ).co - door_prop.thickness*(normal if not door_prop.flip_direction else -normal)
-        for f in door_faces
-    ]
-    window_origins = [
-        common_vert(
-            sort_edges(f.edges, x if window_prop.hinge=="LEFT" else -x)[0],
-            sort_edges(f.edges, y)[0]
-        ).co - window_prop.thickness*(normal if not window_prop.flip_direction else -normal)
-        for f in window_faces
-    ]
+    if door_prop and door_prop.double:
+        both_door_origins = [
+            (
+                common_vert(
+                    sort_edges(f.edges, x)[0], sort_edges(f.edges, y)[0]
+                ).co - door_prop.thickness*(normal if not door_prop.flip_direction else -normal),
+                common_vert(
+                    sort_edges(f.edges, -x)[0], sort_edges(f.edges, y)[0]
+                ).co - door_prop.thickness*(normal if not door_prop.flip_direction else -normal),
+            )
+            for f in door_faces
+        ]
+        door_faces = [f for door_face in door_faces for f in subdivide_face_horizontally(bm, door_face, widths=[get_top_edges(door_face.edges)[0].calc_length()/2]*2)]
+        door_origins = [o for origins in both_door_origins for o in origins]
+
+    else:
+        door_origins = [
+            common_vert(
+                sort_edges(f.edges, x if door_prop.hinge=="LEFT" else -x)[0],
+                sort_edges(f.edges, y)[0]
+            ).co - door_prop.thickness*(normal if not door_prop.flip_direction else -normal)
+            for f in door_faces
+        ]
+    if window_prop and window_prop.double:
+        both_window_origins = [
+            (
+                common_vert(
+                    sort_edges(f.edges, x)[0], sort_edges(f.edges, y)[0]
+                ).co - window_prop.thickness*(normal if not window_prop.flip_direction else -normal),
+                common_vert(
+                    sort_edges(f.edges, -x)[0], sort_edges(f.edges, y)[0]
+                ).co - window_prop.thickness*(normal if not window_prop.flip_direction else -normal),
+            )
+            for f in window_faces
+        ]
+        window_faces = [f for window_face in window_faces for f in subdivide_face_horizontally(bm, window_face, widths=[get_top_edges(window_face.edges)[0].calc_length()/2]*2)]
+        window_origins = [o for origins in both_window_origins for o in origins]
+    else:
+        window_origins = [
+            common_vert(
+                sort_edges(f.edges, x if window_prop.hinge=="LEFT" else -x)[0],
+                sort_edges(f.edges, y)[0]
+            ).co - window_prop.thickness*(normal if not window_prop.flip_direction else -normal)
+            for f in window_faces
+        ]
 
     return (door_faces,door_origins), (window_faces,bar_faces,window_origins), (frame_faces,frame_origin)
 

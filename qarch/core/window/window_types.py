@@ -60,15 +60,17 @@ def create_window(bm, faces, prop):
                 bmesh.ops.delete(bm, geom=[face], context="FACES")
             else:
                 _, (window_faces,bar_faces,window_origins), (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, [face], prop.frame, 'w', None, prop.window)
-                handles,handle_origins,handle_scales = add_handles(window_faces, prop.window.thickness, prop.window.handle, prop.window.hinge, prop.window.flip_direction)
-                window = split_faces(bm, [[window_faces[0]]], ["Window" for f in window_faces])[0]
+                handles,handle_origins,handle_scales = add_handles(window_faces, window_origins, prop.window.thickness, prop.window.handle, prop.window.flip_direction)
+                windows = split_faces(bm, [[f] for f in window_faces], ["Window" for f in window_faces])
                 frame = split_faces(bm, [frame_faces], ["Frame"])[0]
                 # link objects and set origins
                 link_objects([frame], bpy.context.object)
-                link_objects([window], frame)
-                link_objects(handles[0], window)
+                link_objects(windows, frame)
+                for handle,window in zip(handles,windows):
+                    link_objects(handle, window)
                 set_origin(frame, frame_origin)
-                set_origin(window, window_origins[0], frame_origin)
+                for window,origin in zip(windows,window_origins):
+                    set_origin(window, origin, frame_origin)
 
                 # create bars
                 if prop.window.add_bars:
@@ -79,12 +81,13 @@ def create_window(bm, faces, prop):
                         fill_bars(bm, bars, bm.faces[0], prop.window.bars)
 
                 # set handle origin, rotations and scale
-                for handle,origin,scale in zip(handles[0],handle_origins[0],handle_scales[0]):
-                    handle.matrix_local.translation = origin
-                    align_obj(handle, normal)
-                    handle.scale = scale
+                for handle,origin,scale in zip(handles,handle_origins,handle_scales):
+                    handle[0].matrix_local.translation = origin[0]
+                    align_obj(handle[0], normal)
+                    handle[0].scale = scale[0]
 
-                fill_window(window, prop)
+                for window in windows:
+                    fill_window(window, prop)
     return True
 
 
@@ -101,11 +104,11 @@ def fill_window(window, prop):
         fill_face(bm, window, front[0], back[0], prop.window.fill)
 
 
-def add_handles(window_faces, window_thickness, handle_type, hinge, flip=False):
+def add_handles(window_faces, window_origins, window_thickness, handle_type, flip=False):
     handles = []
     handle_origins = []
     handle_scales = []
-    for window_face in window_faces:
+    for window_face,window_origin in zip(window_faces,window_origins):
         directory = Path(os.path.dirname(__file__)).parent.parent
         if handle_type == "STRAIGHT":
             # handle_front = import_obj(directory+"/assets/handle_straight.obj", "Handle")
@@ -115,20 +118,13 @@ def add_handles(window_faces, window_thickness, handle_type, hinge, flip=False):
             handle_back = import_obj(os.path.join(directory, 'assets', 'handle_round.obj'), "Handle")
         xyz = local_xyz(window_face)
         window_width,_ = calc_face_dimensions(window_face)
+        hinge = "LEFT" if local_xyz(window_face)[0].dot(window_origin-window_face.calc_center_median()) < 0 else "RIGHT"
         if hinge == "LEFT":
-            if flip:
-                # handle_origin_front = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
-                handle_origin_back = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5
-            else:
-                # handle_origin_front = xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
-                handle_origin_back = xyz[0] * (window_width-0.06) + xyz[1] * 0.5
+            # handle_origin_front = xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
+            handle_origin_back = xyz[0] * (window_width-0.06) + xyz[1] * 0.5
         elif hinge == "RIGHT":
-            if flip:
-                # handle_origin_front = xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
-                handle_origin_back = xyz[0] * (window_width-0.06) + xyz[1] * 0.5
-            else:
-                # handle_origin_front = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
-                handle_origin_back = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5
+            # handle_origin_front = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
+            handle_origin_back = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5
         if flip:
             if hinge == "LEFT":
                 # handle_front_scale = (1,-1,-1)

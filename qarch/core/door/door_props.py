@@ -15,9 +15,9 @@ class DoorProperty(bpy.types.PropertyGroup):
         description="Thickness of door",
     )
 
-    # double_door: BoolProperty(
-    #     name="Double Door", default=False, description="Double door"
-    # )
+    double: BoolProperty(
+        name="Double", default=False, description="Double door"
+    )
 
     hinge: EnumProperty(
         name="Hinge", items=[("LEFT", "Hinge Left", "", 0), ("RIGHT", "Hinge Right", "", 1)], default="LEFT", description="Hinge"
@@ -47,14 +47,16 @@ class DoorProperty(bpy.types.PropertyGroup):
 
     def draw(self, context, layout):
 
+        col = layout.column()
+        row = col.row(align=True)
+        row.prop(self, "flip_direction")
+        row.prop(self, "double")
+
         col = layout.column(align=True)
-        col.prop(self, "flip_direction", toggle=True)
-
-        row = col.row(align=True)
-        row.prop(self, "thickness")
-
-        row = col.row(align=True)
-        row.prop(self, "hinge", expand=True)
+        if not self.double:
+            row = col.row(align=True)
+            row.prop(self, "hinge", expand=True)
+        col.prop(self, "thickness")
 
         self.fill.draw(context, col)
 

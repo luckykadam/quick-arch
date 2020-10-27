@@ -53,8 +53,7 @@ def fill_panel(bm, obj, front_face, back_face, prop):
 
     for face in [front_face, back_face]:
         width, height = calc_face_dimensions(face)
-        if not round(width) or not round(height):
-            return
+        
         # XXX Ensure margin is less than parent face size
         min_dimension = min(calc_face_dimensions(face))
         prop.margin = min(

@@ -63,8 +63,8 @@ def create_multigroup(bm, faces, prop):
                 bmesh.ops.delete(bm, geom=faces, context="FACES")
             else:
                 (door_faces,door_origins), (window_faces,bar_faces,window_origins), (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, faces, prop.frame, prop.components, prop.door, prop.window)
-                knobs,knob_origins,knob_scales = add_knobs(door_faces, prop.door.thickness, prop.door.knob, prop.door.hinge, prop.door.flip_direction)
-                handles,handle_origins,handle_scales = add_handles(window_faces, prop.window.thickness, prop.window.handle, prop.window.hinge, prop.window.flip_direction)
+                knobs,knob_origins,knob_scales = add_knobs(door_faces, door_origins, prop.door.thickness, prop.door.knob, prop.door.flip_direction)
+                handles,handle_origins,handle_scales = add_handles(window_faces, window_origins, prop.window.thickness, prop.window.handle, prop.window.flip_direction)
                 doors = split_faces(bm, [[f] for f in door_faces], ["Door" for f in door_faces])
                 windows = split_faces(bm, [[f] for f in window_faces], ["Window" for f in window_faces])
                 frame = split_faces(bm, [frame_faces], ["Frame"])[0]
@@ -73,8 +73,12 @@ def create_multigroup(bm, faces, prop):
                 link_objects([frame], bpy.context.object)
                 link_objects(doors+windows, frame)
                 set_origin(frame, frame_origin)
+                for knob,door in zip(knobs,doors):
+                    link_objects(knob, door)
                 for door,origin in zip(doors,door_origins):
                     set_origin(door, origin, frame_origin)
+                for handle,window in zip(handles,windows):
+                    link_objects(handle, window)
                 for window,origin in zip(windows,window_origins):
                     set_origin(window, origin, frame_origin)
 
@@ -90,18 +94,15 @@ def create_multigroup(bm, faces, prop):
                 # set knob origin, rotations and scale
                 for door,knobs,origins,scales in zip(doors,knobs,knob_origins,knob_scales):
                     for knob,origin,scale in zip(knobs,origins,scales):
-                        link_objects([knob], door)
                         knob.matrix_local.translation = origin
                         align_obj(knob, normal)
                         knob.scale = scale
 
                 # set handle origin, rotations and scale
-                for window,handles,origins,scales in zip(windows,handles,handle_origins,handle_scales):
-                    for handle,origin,scale in zip(handles, origins, scales):
-                        link_objects([handle], window)
-                        handle.matrix_local.translation = origin
-                        align_obj(handle, normal)
-                        handle.scale = scale
+                for handle,origin,scale in zip(handles,handle_origins,handle_scales):
+                    handle[0].matrix_local.translation = origin[0]
+                    align_obj(handle[0], normal)
+                    handle[0].scale = scale[0]
 
                 for door in doors:
                     fill_door(door, prop)
