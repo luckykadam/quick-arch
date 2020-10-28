@@ -134,15 +134,13 @@ def add_knobs(door_faces, door_origins, door_thickness, knob_type, flip=False):
         if hinge == "LEFT":
             knob_origin_front = xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
             knob_origin_back = xyz[0] * (door_width-0.06) + xyz[1] * 0.9
+            knob_front_scale = (1,-1,-1) if flip else (1,-1,1)
+            knob_back_scale = (1,-1,1) if flip else (1,-1,-1)
         elif hinge == "RIGHT":
             knob_origin_front = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
             knob_origin_back = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9
-        if flip:
-            knob_front_scale = (1,1,-1)
-            knob_back_scale = (1,1,1)
-        else:
-            knob_front_scale = (1,1,1)
-            knob_back_scale = (1,1,-1)
+            knob_front_scale = (1,1,-1) if flip else (1,1,1)
+            knob_back_scale = (1,1,1) if flip else (1,1,-1)
         knobs.append([knob_front,knob_back])
         knob_origins.append([knob_origin_front,knob_origin_back])
         knob_scales.append([knob_front_scale,knob_back_scale])

@@ -122,23 +122,13 @@ def add_handles(window_faces, window_origins, window_thickness, handle_type, fli
         if hinge == "LEFT":
             # handle_origin_front = xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
             handle_origin_back = xyz[0] * (window_width-0.06) + xyz[1] * 0.5
+            # handle_front_scale = (1,-1,-1) if flip else (1,-1,1)
+            handle_back_scale = (1,-1,1) if flip else (1,-1,-1)
         elif hinge == "RIGHT":
             # handle_origin_front = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
             handle_origin_back = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5
-        if flip:
-            if hinge == "LEFT":
-                # handle_front_scale = (1,-1,-1)
-                handle_back_scale = (1,-1,1)
-            else:
-                # handle_front_scale = (1,1,-1)
-                handle_back_scale = (1,1,1)
-        else:
-            if hinge == "LEFT":
-                # handle_front_scale = (1,-1,1)
-                handle_back_scale = (1,-1,-1)
-            else:
-                # handle_front_scale = (1,1,1)
-                handle_back_scale = (1,1,-1)
+            # handle_front_scale = (1,1,-1) if flip else (1,1,1)
+            handle_back_scale = (1,1,1) if flip else (1,1,-1)
         # handles.append([handle_front])
         # handle_origins.append([handle_origin_front])
         # handle_scales.append([handle_front_scale])
