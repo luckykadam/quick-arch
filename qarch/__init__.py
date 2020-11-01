@@ -40,12 +40,12 @@ class QARCH_PT_mesh_tools(bpy.types.Panel):
         row.operator("qarch.add_door")
         col.operator("qarch.add_multigroup")
 
-        col = layout.column(align=True)
-        col.operator("qarch.add_balcony")
-        col.operator("qarch.add_stairs")
+        row = layout.row(align=True)
+        row.operator("qarch.add_balcony")
+        row.operator("qarch.add_stairs")
 
-        col = layout.column(align=True)
-        col.operator("qarch.add_asset", icon="ADD")
+        row = layout.row(align=True)
+        row.operator("qarch.add_asset", icon="ADD")
 
 
 class QARCH_PT_material_tools(bpy.types.Panel):

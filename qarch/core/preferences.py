@@ -2,7 +2,7 @@ import bpy
 
 
 class QuickArchPreferences(bpy.types.PropertyGroup):
-    libpath: bpy.props.StringProperty(name="Library Path", description="Path to Chocofur style Asset Library")
+    libpath: bpy.props.StringProperty(name="Library Path", description="Path to Chocofur style Asset Library", subtype="DIR_PATH")
 
 def register_preferences():
     bpy.utils.register_class(QuickArchPreferences)
