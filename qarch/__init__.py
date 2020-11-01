@@ -114,7 +114,22 @@ class QARCH_PT_material_tools(bpy.types.Panel):
             # layout.template_ID_preview(face_map_material, "material", hide_buttons=True)
 
 
-classes = (QARCH_PT_mesh_tools, QARCH_PT_material_tools)
+class QARCH_PT_preferences(bpy.types.Panel):
+    bl_label = "Preferences"
+    bl_parent_id = "QARCH_PT_mesh_tools"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        col.use_property_split = True
+        col.use_property_decorate = False
+        col.prop(context.scene.qarch_prefs, "libpath")
+
+
+classes = (QARCH_PT_mesh_tools, QARCH_PT_material_tools, QARCH_PT_preferences)
 
 
 def register():
