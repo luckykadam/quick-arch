@@ -21,7 +21,7 @@ from ...utils import (
     crash_safe,
     duplicate_faces,
     deselect,
-    import_obj,
+    import_blend,
     local_xyz,
     align_obj,
     shrink_face,
@@ -111,11 +111,11 @@ def add_handles(window_faces, window_origins, window_thickness, handle_type, fli
     for window_face,window_origin in zip(window_faces,window_origins):
         directory = Path(os.path.dirname(__file__)).parent.parent
         if handle_type == "STRAIGHT":
-            # handle_front = import_obj(directory+"/assets/handle_straight.obj", "Handle")
-            handle_back = import_obj(os.path.join(directory, 'assets', 'handle_straight.obj'), "Handle")
+            # handle_front = import_blend(directory+"/assets/handle_straight.blend", "Handle")[0]
+            handle_back = import_blend(os.path.join(directory, 'assets', 'handle_straight.blend'), "Handle")[0]
         if handle_type == "ROUND":
-            # handle_front = import_obj(directory+"/assets/handle_round.obj", "Handle")
-            handle_back = import_obj(os.path.join(directory, 'assets', 'handle_round.obj'), "Handle")
+            # handle_front = import_blend(directory+"/assets/handle_round.blend", "Handle")[0]
+            handle_back = import_blend(os.path.join(directory, 'assets', 'handle_round.blend'), "Handle")[0]
         xyz = local_xyz(window_face)
         window_width,_ = calc_face_dimensions(window_face)
         hinge = "LEFT" if local_xyz(window_face)[0].dot(window_origin-window_face.calc_center_median()) < 0 else "RIGHT"

@@ -9,6 +9,7 @@ from ...utils import (
     local_xyz,
     align_obj,
     vec_equal,
+    import_blend,
 )
 
 from ..validations import validate, some_selection
@@ -30,13 +31,9 @@ def add_asset(context, props):
 def add_object(face, offset, libpath, asset_type, category, asset_name, track, up):
     filepath = (os.path.join(libpath, asset_type, category, asset_name + ".blend"))
 
-    # import object (linked)
-    with bpy.data.libraries.load(filepath, True) as (data_from, data_to):
-        data_to.objects = data_from.objects
-        if hasattr(data_from, "groups") and data_from.groups:
-            data_to.groups = data_from.groups
+    objects = import_blend(filepath)
 
-    parent_objs = [ob for ob in data_to.objects if not ob.parent]
+    parent_objs = [ob for ob in objects if not ob.parent]
     link_objects(parent_objs, bpy.context.object)
     if vec_equal(face.normal, Vector((0,0,1))):
         xyz = [Vector((1,0,0)), Vector((0,1,0)), Vector((0,0,1))]
