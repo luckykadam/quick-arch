@@ -1,13 +1,27 @@
-import bpy
+import os, bpy
 from bpy.props import FloatVectorProperty
 
-def get_mesh_objects():
-    objs = [obj for obj in bpy.context.scene.objects if obj.type=="MESH" and obj!=bpy.context.object]
-    return [("", "NONE", "NONE")] + [(obj.name, obj.name, obj.name) for obj in objs]
+def get_asset_types(self, context):
+    directory = self.libpath
+    if not os.path.exists(directory):
+        return []
+    dirs = [d for d in os.listdir(directory) if not d.startswith('.')]
+    return [(dir,dir,dir) for dir in dirs]
 
-def objects(self, context):
-    objects = self.get("objects", [])
-    return [tuple(x) for x in objects]
+def get_categories(self, context):
+    if not self.asset_type:
+        return []
+    directory = os.path.join(self.libpath,self.asset_type)
+    dirs = [d for d in os.listdir(directory) if not d.startswith('.')]
+    return [(dir,dir,dir) for dir in dirs]
+
+def get_asset_names(self, context):
+    if not self.category:
+        return []
+    directory = os.path.join(self.libpath,self.asset_type,self.category)
+    dirs = [d[:-6] for d in os.listdir(directory) if not d.startswith('.') and d.endswith('.blend') and not os.path.isdir(os.path.join(directory,d))]
+    return [(dir,dir,dir) for dir in dirs]
+
 
 class CustomObjectProperty(bpy.types.PropertyGroup):
 
@@ -19,29 +33,34 @@ class CustomObjectProperty(bpy.types.PropertyGroup):
         description="Offset in face's space",
     )
 
-    obj: bpy.props.EnumProperty(name="Object", items=objects)
+    libpath: bpy.props.StringProperty(name="Asset Library Path")
+    asset_type: bpy.props.EnumProperty(name="Asset Type", items=get_asset_types)
+    category: bpy.props.EnumProperty(name="Category", items=get_categories)
+    asset_name: bpy.props.EnumProperty(name="Asset Name", items=get_asset_names)
     track: bpy.props.EnumProperty(name="Track", items=[('X','X','X'),('Y','Y','Y'),('Z','Z','Z'),('-X','-X','-X'),('-Y','-Y','-Y'),('-Z','-Z','-Z')], default="Z")
     up: bpy.props.EnumProperty(name="Up", items=[('X','X','X'),('Y','Y','Y'),('Z','Z','Z')], default="X")
 
     def init(self):
-        self["objects"] = get_mesh_objects()
         self.offset = (0,0,0)
 
     def draw(self, context, layout):
 
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.label(text="Offset: ")
+        col = layout.column()
+        col.prop(self, "libpath")
+        col.prop(self, "asset_type")
+        col.prop(self, "category")
+        col.prop(self, "asset_name")
+
+        layout.separator()
+        # layout.label(text="Alignment")
+        row = layout.row(align=True)
+        row.label(text="Offset ")
         row.column().prop(self, "offset", text="")
 
-        col = layout.column()
-        row = col.row()
-        row.prop(self, "obj")
-
-        row = col.row()
+        row = layout.row(align=True)
         row.label(text="Track")
         row.prop(self, "track", expand=True)
 
-        row = col.row()
+        row = layout.row(align=True)
         row.label(text="Up")
         row.prop(self, "up", expand=True)
