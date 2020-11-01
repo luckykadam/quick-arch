@@ -16,7 +16,7 @@ from ..validations import validate, some_selection
 
 @crash_safe
 @validate([some_selection], ["No faces seleted"])
-def add_custom_object(context, props):
+def add_asset(context, props):
     """ Add custom object as linked object.
     """
     with managed_bmesh_edit(context.edit_object) as bm:

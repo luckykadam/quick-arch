@@ -11,7 +11,7 @@ from .balcony import register_balcony, unregister_balcony
 from .generic import register_generic, unregister_generic
 from .material import register_material, unregister_material
 from .multigroup import register_multigroup, unregister_multigroup
-from .custom_object import register_custom_object, unregister_custom_object
+from .asset import register_asset, unregister_asset
 from .floorplan import register_floorplan, unregister_floorplan
 from .preferences import register_preferences, unregister_preferences, QuickArchPreferences
 
@@ -29,7 +29,7 @@ register_funcs = (
     register_window,
     register_stairs,
     register_multigroup,
-    register_custom_object,
+    register_asset,
     register_floorplan,
     register_preferences,
 )
@@ -46,7 +46,7 @@ unregister_funcs = (
     unregister_window,
     unregister_stairs,
     unregister_multigroup,
-    unregister_custom_object,
+    unregister_asset,
     unregister_floorplan,
     unregister_preferences,
 )

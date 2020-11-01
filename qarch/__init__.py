@@ -45,7 +45,7 @@ class QARCH_PT_mesh_tools(bpy.types.Panel):
         col.operator("qarch.add_stairs")
 
         col = layout.column(align=True)
-        col.operator("qarch.add_custom_object", icon="ADD")
+        col.operator("qarch.add_asset", icon="ADD")
 
 
 class QARCH_PT_material_tools(bpy.types.Panel):
