@@ -32,17 +32,6 @@ def add_object(face, offset, libpath, asset_type, category, asset_name, track, u
     filepath = (os.path.join(libpath, asset_type, category, asset_name + ".blend"))
 
     objects = import_blend(filepath)
-    parent_objs = [ob for ob in objects if not ob.parent]
-
-    def process_object(obj):
-        for child in obj.children:
-            process_object(child)
-        link_objects([obj], bpy.context.object)
-        obj.make_local()
-        obj.select_set(False)
-
-    for obj in parent_objs:
-        process_object(obj)
 
     if vec_equal(face.normal, Vector((0,0,1))):
         xyz = [Vector((1,0,0)), Vector((0,1,0)), Vector((0,0,1))]
@@ -52,6 +41,6 @@ def add_object(face, offset, libpath, asset_type, category, asset_name, track, u
         xyz = local_xyz(face) 
     local_offset = xyz[0]*offset.x + xyz[1]*offset.y + xyz[2]*offset.z
     
-    for obj in parent_objs:
+    for obj in objects:
         obj.matrix_local.translation = face.calc_center_median() + local_offset
         align_obj(obj, face.normal, track=track, up=up)

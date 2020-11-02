@@ -123,11 +123,11 @@ def add_knobs(door_faces, door_origins, door_thickness, knob_type, flip=False):
     for door_face,door_origin in zip(door_faces,door_origins):
         directory = Path(os.path.dirname(__file__)).parent.parent
         if knob_type == "ROUND":
-            knob_front = import_blend(os.path.join(directory, 'assets', 'knob_round.blend'), linked=False)[0]
-            knob_back = import_blend(os.path.join(directory, 'assets', 'knob_round.blend'), linked=False)[0]
+            knob_front = import_blend(os.path.join(directory, 'assets', 'knob_round.blend'))[0]
+            knob_back = import_blend(os.path.join(directory, 'assets', 'knob_round.blend'))[0]
         elif knob_type == "STRAIGHT":
-            knob_front = import_blend(os.path.join(directory, 'assets', 'knob_straight.blend'), linked=False)[0]
-            knob_back = import_blend(os.path.join(directory, 'assets', 'knob_straight.blend'), linked=False)[0]
+            knob_front = import_blend(os.path.join(directory, 'assets', 'knob_straight.blend'))[0]
+            knob_back = import_blend(os.path.join(directory, 'assets', 'knob_straight.blend'))[0]
         xyz = local_xyz(door_face)
         door_width,_ = calc_face_dimensions(door_face)
         hinge = "LEFT" if local_xyz(door_face)[0].dot(door_origin-door_face.calc_center_median()) < 0 else "RIGHT"

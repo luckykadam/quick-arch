@@ -60,7 +60,20 @@ def import_blend(path, linked=True):
         data_to.objects = data_from.objects
         if hasattr(data_from, "groups") and data_from.groups:
             data_to.groups = data_from.groups
-    return data_to.objects
+
+    parent_objs = [ob for ob in data_to.objects if not ob.parent]
+
+    def process_object(obj):
+        for child in obj.children:
+            process_object(child)
+        link_objects([obj], bpy.context.object)
+        obj.make_local()
+        obj.select_set(False)
+
+    for obj in parent_objs:
+        process_object(obj)
+
+    return parent_objs
 
 
 def align_obj(obj, dir, track='Z', up='Y'):
