@@ -37,7 +37,7 @@ class CustomObjectProperty(bpy.types.PropertyGroup):
     category: bpy.props.EnumProperty(name="Category", items=get_categories)
     asset_name: bpy.props.EnumProperty(name="Asset Name", items=get_asset_names)
     track: bpy.props.EnumProperty(name="Track", items=[('X','X','X'),('Y','Y','Y'),('Z','Z','Z'),('-X','-X','-X'),('-Y','-Y','-Y'),('-Z','-Z','-Z')], default="Z")
-    up: bpy.props.EnumProperty(name="Up", items=[('X','X','X'),('Y','Y','Y'),('Z','Z','Z')], default="X")
+    up: bpy.props.EnumProperty(name="Up", items=[('X','X','X'),('Y','Y','Y'),('Z','Z','Z')], default="Y")
 
     def init(self):
         self.offset = (0,0,0)
