@@ -13,7 +13,7 @@ from .material import register_material, unregister_material
 from .multigroup import register_multigroup, unregister_multigroup
 from .asset import register_asset, unregister_asset
 from .floorplan import register_floorplan, unregister_floorplan
-from .preferences import register_preferences, unregister_preferences, QuickArchPreferences
+from .settings import register_settings, unregister_settings, QuickArchSettings
 
 
 # -- ORDER MATTERS --
@@ -31,7 +31,7 @@ register_funcs = (
     register_multigroup,
     register_asset,
     register_floorplan,
-    register_preferences,
+    register_settings,
 )
 
 unregister_funcs = (
@@ -48,14 +48,14 @@ unregister_funcs = (
     unregister_multigroup,
     unregister_asset,
     unregister_floorplan,
-    unregister_preferences,
+    unregister_settings,
 )
 
 
 def register_core():
     for func in register_funcs:
         func()
-    bpy.types.Scene.qarch_prefs = bpy.props.PointerProperty(type=QuickArchPreferences)
+    bpy.types.Scene.qarch_settings = bpy.props.PointerProperty(type=QuickArchSettings)
 
 
 def unregister_core():

@@ -25,7 +25,7 @@ def add_asset(context, props):
         deselect(faces)
         for f in faces:
             if props.asset_type and props.category and props.asset_name:
-                add_object(f, props.offset, context.scene.qarch_prefs.libpath, props.asset_type, props.category, props.asset_name, props.track, props.up)
+                add_object(f, props.offset, context.scene.qarch_settings.libpath, props.asset_type, props.category, props.asset_name, props.track, props.up)
     return {"FINISHED"}
 
 def add_object(face, offset, libpath, asset_type, category, asset_name, track, up):
