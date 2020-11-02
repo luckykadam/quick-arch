@@ -123,24 +123,24 @@ def add_knobs(door_faces, door_origins, door_thickness, knob_type, flip=False):
     for door_face,door_origin in zip(door_faces,door_origins):
         directory = Path(os.path.dirname(__file__)).parent.parent
         if knob_type == "ROUND":
-            knob_front = import_blend(os.path.join(directory, 'assets', 'knob_round.blend'), "Knob")[0]
-            knob_back = import_blend(os.path.join(directory, 'assets', 'knob_round.blend'), "Knob")[0]
+            knob_front = import_blend(os.path.join(directory, 'assets', 'knob_round.blend'), linked=False)[0]
+            knob_back = import_blend(os.path.join(directory, 'assets', 'knob_round.blend'), linked=False)[0]
         elif knob_type == "STRAIGHT":
-            knob_front = import_blend(os.path.join(directory, 'assets', 'knob_straight. blend'), "Knob")[0]
-            knob_back = import_blend(os.path.join(directory, 'assets', 'knob_straight.blend'), "Knob")[0]
+            knob_front = import_blend(os.path.join(directory, 'assets', 'knob_straight.blend'), linked=False)[0]
+            knob_back = import_blend(os.path.join(directory, 'assets', 'knob_straight.blend'), linked=False)[0]
         xyz = local_xyz(door_face)
         door_width,_ = calc_face_dimensions(door_face)
         hinge = "LEFT" if local_xyz(door_face)[0].dot(door_origin-door_face.calc_center_median()) < 0 else "RIGHT"
         if hinge == "LEFT":
             knob_origin_front = xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
             knob_origin_back = xyz[0] * (door_width-0.06) + xyz[1] * 0.9
-            knob_front_scale = (1,-1,-1) if flip else (1,-1,1)
-            knob_back_scale = (1,-1,1) if flip else (1,-1,-1)
+            knob_front_scale = (1,1,-1) if flip else (-1,1,1)
+            knob_back_scale = (1,1,1) if flip else (-1,1,-1)
         elif hinge == "RIGHT":
             knob_origin_front = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
             knob_origin_back = - xyz[0] * (door_width-0.06) + xyz[1] * 0.9
-            knob_front_scale = (1,1,-1) if flip else (1,1,1)
-            knob_back_scale = (1,1,1) if flip else (1,1,-1)
+            knob_front_scale = (-1,1,-1) if flip else (1,1,1)
+            knob_back_scale = (-1,1,1) if flip else (1,1,-1)
         knobs.append([knob_front,knob_back])
         knob_origins.append([knob_origin_front,knob_origin_back])
         knob_scales.append([knob_front_scale,knob_back_scale])

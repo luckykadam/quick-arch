@@ -56,13 +56,13 @@ def import_obj(path, name):
 def import_blend(path, linked=True):
     """ Import object exported with up=Z and forward=X
     """
-    with bpy.data.libraries.load(path, True) as (data_from, data_to):
+    with bpy.data.libraries.load(path, linked) as (data_from, data_to):
         data_to.objects = data_from.objects
         if hasattr(data_from, "groups") and data_from.groups:
             data_to.groups = data_from.groups
     return data_to.objects
 
 
-def align_obj(obj, dir, track='Z', up='X'):
+def align_obj(obj, dir, track='Z', up='Y'):
     obj.rotation_mode = 'QUATERNION'
     obj.rotation_quaternion = dir.to_track_quat(track, up)
