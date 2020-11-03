@@ -25,6 +25,7 @@ from ...utils import (
     calc_edge_median,
     split_faces,
     link_objects,
+    make_parent,
     set_origin,
     get_bottom_edges,
     get_top_faces,
@@ -64,7 +65,8 @@ def create_stairs(bm, faces, prop):
 
         stairs = split_faces(bm, [[stairs_face]], ["Stairs"], delete_original=True)[0]
         # link objects and set origins
-        link_objects([stairs], bpy.context.object)
+        link_objects([stairs], bpy.context.object.users_collection)
+        make_parent([stairs], bpy.context.object)
         set_origin(stairs, stairs_origin)
 
         normal = f.normal.copy()
@@ -269,7 +271,8 @@ def add_railing_to_stairs(stairs, normal, prop):
         # split useful railing facces to new object and create railings
         [railings] = split_faces(bm, [useful_railing_faces], ["Railings"], delete_original=True)
         create_railing(railings, prop.rail, normal)
-        link_objects([railings], stairs)
+        link_objects([railings], bpy.context.object.users_collection)
+        make_parent([railings], stairs)
         # post_process_railing(bm, res, prop)
 
 

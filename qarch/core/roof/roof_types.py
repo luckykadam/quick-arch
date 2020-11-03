@@ -22,6 +22,7 @@ from ...utils import (
     extrude_face_region,
     split_faces,
     link_objects,
+    make_parent,
     set_origin,
     verify_facemaps_for_object,
     managed_bmesh,
@@ -56,21 +57,24 @@ def create_roof(bm, faces, prop):
     roof_origin = mean_vector([f.calc_center_median() for f in faces])
     if prop.type == "FLAT":
         roof = split_faces(bm, [faces], ["Roof"], delete_original=False)[0]
-        link_objects([roof], bpy.context.object)
+        link_objects([roof], bpy.context.object.users_collection)
+        make_parent([roof], bpy.context.object)
         set_origin(roof, roof_origin)
         add_facemaps([FaceMap.ROOF, FaceMap.ROOF_HANGS], roof)
         create_flat_roof(roof, prop)
     elif prop.type == "GABLE":
         top_faces = create_gable_roof(bm, faces, prop)
         roof = split_faces(bm, [top_faces], ["Roof"], delete_original=False)[0]
-        link_objects([roof], bpy.context.object)
+        link_objects([roof], bpy.context.object.users_collection)
+        make_parent([roof], bpy.context.object)
         set_origin(roof, roof_origin)
         add_facemaps([FaceMap.ROOF, FaceMap.ROOF_HANGS], roof)
         gable_process_open(roof, prop)
     elif prop.type == "HIP":
         top_faces = create_hip_roof(bm, faces, prop)
         roof = split_faces(bm, [top_faces], ["Roof"], delete_original=False)[0]
-        link_objects([roof], bpy.context.object)
+        link_objects([roof], bpy.context.object.users_collection)
+        make_parent([roof], bpy.context.object)
         set_origin(roof, roof_origin)
         add_facemaps([FaceMap.ROOF, FaceMap.ROOF_HANGS], roof)
         gable_process_open(roof, prop)

@@ -18,6 +18,7 @@ from ...utils import (
     calc_edge_median,
     split_faces,
     link_objects,
+    make_parent,
     set_origin,
     managed_bmesh,
     extrude_face_region,
@@ -57,7 +58,8 @@ def create_balcony(bm, faces, prop):
 
         balcony = split_faces(bm, [[balcony_face]], ["Balcony"], delete_original=True)[0]
         # link objects and set origins
-        link_objects([balcony], bpy.context.object)
+        link_objects([balcony], bpy.context.object.users_collection)
+        make_parent([balcony], bpy.context.object)
         set_origin(balcony, balcony_origin)
 
         extrude_balcony(balcony, prop.width, normal)
@@ -107,7 +109,8 @@ def add_railing_to_balcony(balcony, balcony_normal, prop):
         railing_faces = filter_geom(railing_geom, BMFace)
         [railings] = split_faces(bm, [railing_faces], ["Railings"], delete_original=True)
         create_railing(railings, prop.rail, balcony_normal)
-        link_objects([railings], balcony)
+        link_objects([railings], bpy.context.object.users_collection)
+        make_parent([railings], balcony)
 
 
 def create_balcony_split(bm, face, prop):

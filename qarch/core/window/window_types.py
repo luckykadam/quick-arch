@@ -12,6 +12,7 @@ from ...utils import (
     subdivide_face_horizontally,
     split_faces,
     link_objects,
+    make_parent,
     set_origin,
     extrude_face_region,
     managed_bmesh,
@@ -64,10 +65,13 @@ def create_window(bm, faces, prop):
                 windows = split_faces(bm, [[f] for f in window_faces], ["Window" for f in window_faces])
                 frame = split_faces(bm, [frame_faces], ["Frame"])[0]
                 # link objects and set origins
-                link_objects([frame], bpy.context.object)
-                link_objects(windows, frame)
+                link_objects([frame], bpy.context.object.users_collection)
+                make_parent([frame], bpy.context.object)
+                link_objects(windows, bpy.context.object.users_collection)
+                make_parent(windows, frame)
                 for handle,window in zip(handles,windows):
-                    link_objects(handle, window)
+                    # link_objects(handle, window)
+                    make_parent(handle, window)
                 set_origin(frame, frame_origin)
                 for window,origin in zip(windows,window_origins):
                     set_origin(window, origin, frame_origin)
@@ -75,7 +79,8 @@ def create_window(bm, faces, prop):
                 # create bars
                 if prop.window.add_bars:
                     bars = split_faces(bm, [bar_faces], ["Bars"])[0]
-                    link_objects([bars], frame)
+                    link_objects([bars], bpy.context.object.users_collection)
+                    make_parent([bars], frame)
                     set_origin(bars, window_origins[0], frame_origin)
                     with managed_bmesh(bars) as bm:
                         fill_bars(bm, bars, bm.faces[0], prop.window.bars)

@@ -10,6 +10,7 @@ from ...utils import (
     calc_face_dimensions,
     split_faces,
     link_objects,
+    make_parent,
     calc_edge_median,
     set_origin,
     subdivide_face_horizontally,
@@ -65,10 +66,13 @@ def create_door(bm, faces, prop):
                 doors = split_faces(bm, [[f] for f in door_faces], ["Door" for f in door_faces])
                 frame = split_faces(bm, [frame_faces], ["Frame"])[0]
                 # link objects and set origins
-                link_objects([frame], bpy.context.object)
-                link_objects(doors, frame)
+                link_objects([frame], bpy.context.object.users_collection)
+                make_parent([frame], bpy.context.object)
+                link_objects(doors, bpy.context.object.users_collection)
+                make_parent(doors, frame)
                 for knob,door in zip(knobs,doors):
-                    link_objects(knob, door)
+                    # link_objects(knob, bpy.context.object.users_collection)
+                    make_parent(knob, door)
                 set_origin(frame, frame_origin)
                 for door,origin in zip(doors,door_origins):
                     set_origin(door, origin, frame_origin)

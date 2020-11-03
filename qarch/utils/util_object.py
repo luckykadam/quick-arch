@@ -30,14 +30,15 @@ def bmesh_from_active_object(context=None):
         bm_to_obj(bm, context.object)
 
 
-def link_objects(objs, parent):
-    collection = parent.users_collection[0]
+def link_objects(objs, collections):
     for obj in objs:
-        obj.parent = parent
-        for c in obj.users_collection:
-            c.objects.unlink(obj)
-        if obj.name not in collection.objects:
+        for collection in collections:
             collection.objects.link(obj)
+
+
+def make_parent(objs, parent):
+    for obj in objs:
+        obj.parent = parent 
 
 
 def import_obj(path, name):
@@ -63,10 +64,11 @@ def import_blend(path, linked=True):
 
     parent_objs = [ob for ob in data_to.objects if not ob.parent]
 
+    link_objects(parent_objs, bpy.context.object.users_collection)
+    make_parent(parent_objs, bpy.context.object)
     def process_object(obj):
         for child in obj.children:
             process_object(child)
-        link_objects([obj], bpy.context.object)
         obj.make_local()
         obj.select_set(False)
 

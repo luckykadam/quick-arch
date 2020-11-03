@@ -11,6 +11,7 @@ from ...utils import (
     subdivide_face_horizontally,
     split_faces,
     link_objects,
+    make_parent,
     set_origin,
     calc_face_dimensions,
     managed_bmesh_edit,
@@ -70,15 +71,19 @@ def create_multigroup(bm, faces, prop):
                 frame = split_faces(bm, [frame_faces], ["Frame"])[0]
 
                 # link objects and set origins
-                link_objects([frame], bpy.context.object)
-                link_objects(doors+windows, frame)
+                link_objects([frame], bpy.context.object.users_collection)
+                make_parent([frame], bpy.context.object)
+                link_objects(doors+windows, bpy.context.object.users_collection)
+                make_parent(doors+windows, frame)
                 set_origin(frame, frame_origin)
                 for knob,door in zip(knobs,doors):
-                    link_objects(knob, door)
+                    # link_objects(knob, door)
+                    make_parent(knob, door)
                 for door,origin in zip(doors,door_origins):
                     set_origin(door, origin, frame_origin)
                 for handle,window in zip(handles,windows):
-                    link_objects(handle, window)
+                    # link_objects(handle, window)
+                    make_parent(handle, window)
                 for window,origin in zip(windows,window_origins):
                     set_origin(window, origin, frame_origin)
 
@@ -86,7 +91,8 @@ def create_multigroup(bm, faces, prop):
                 if prop.window.add_bars:
                     for face,origin in zip(bar_faces,window_origins):
                         bars = split_faces(bm, [[face]], ["Bars"])[0]
-                        link_objects([bars], frame)
+                        link_objects([bars], bpy.context.object.users_collection)
+                        make_parent([bars], frame)
                         set_origin(bars, origin, frame_origin)
                         with managed_bmesh(bars) as bars_bm:
                             fill_bars(bars_bm, bars, bars_bm.faces[0], prop.window.bars)
