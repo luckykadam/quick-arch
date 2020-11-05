@@ -2,7 +2,7 @@ import os, bpy
 import bmesh
 
 from .asset_types import add_asset
-from .asset_props import CustomObjectProperty
+from .asset_props import AssetProperty
 
 class QARCH_OT_add_asset(bpy.types.Operator):
     """Add an asset from Chocofur style library to selected faces. To enable - set Library Path in Quick Arch Settings"""
@@ -11,7 +11,7 @@ class QARCH_OT_add_asset(bpy.types.Operator):
     bl_label = "Add Asset"
     bl_options = {"REGISTER", "UNDO"}
 
-    props: bpy.props.PointerProperty(type=CustomObjectProperty)
+    props: bpy.props.PointerProperty(type=AssetProperty)
 
     @classmethod
     def poll(cls, context):

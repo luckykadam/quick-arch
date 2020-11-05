@@ -1,9 +1,9 @@
 import bpy
 
 from .asset_ops import QARCH_OT_add_asset
-from .asset_props import CustomObjectProperty
+from .asset_props import AssetProperty
 
-classes = (CustomObjectProperty, QARCH_OT_add_asset)
+classes = (AssetProperty, QARCH_OT_add_asset)
 
 
 def register_asset():
