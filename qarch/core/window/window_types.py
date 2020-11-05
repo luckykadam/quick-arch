@@ -123,7 +123,7 @@ def add_handles(window_faces, window_origins, window_thickness, handle_type, fli
             handle_back = import_blend(os.path.join(directory, 'assets', 'handle_round.blend'))[0]
         xyz = local_xyz(window_face)
         window_width,_ = calc_face_dimensions(window_face)
-        hinge = "LEFT" if local_xyz(window_face)[0].dot(window_origin-window_face.calc_center_median()) < 0 else "RIGHT"
+        hinge = "LEFT" if local_xyz(window_face)[0].dot(window_origin-window_face.calc_center_bounds()) < 0 else "RIGHT"
         if hinge == "LEFT":
             # handle_origin_front = xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
             handle_origin_back = xyz[0] * (window_width-0.06) + xyz[1] * 0.5

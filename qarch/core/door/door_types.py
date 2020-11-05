@@ -134,7 +134,7 @@ def add_knobs(door_faces, door_origins, door_thickness, knob_type, flip=False):
             knob_back = import_blend(os.path.join(directory, 'assets', 'knob_straight.blend'))[0]
         xyz = local_xyz(door_face)
         door_width,_ = calc_face_dimensions(door_face)
-        hinge = "LEFT" if local_xyz(door_face)[0].dot(door_origin-door_face.calc_center_median()) < 0 else "RIGHT"
+        hinge = "LEFT" if local_xyz(door_face)[0].dot(door_origin-door_face.calc_center_bounds()) < 0 else "RIGHT"
         if hinge == "LEFT":
             knob_origin_front = xyz[0] * (door_width-0.06) + xyz[1] * 0.9 + xyz[2] * door_thickness
             knob_origin_back = xyz[0] * (door_width-0.06) + xyz[1] * 0.9

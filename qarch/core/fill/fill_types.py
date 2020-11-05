@@ -80,7 +80,7 @@ def fill_glass_panes(bm, obj, front_face, back_face, prop, user=FillUser.DOOR):
     """
     if prop.count_x + prop.count_y == 0:
         return
-    dw_thickness = (front_face.calc_center_median()-back_face.calc_center_median()).length
+    dw_thickness = (front_face.calc_center_bounds()-back_face.calc_center_bounds()).length
 
     for face in [front_face, back_face]:
         width, height = calc_face_dimensions(face)
@@ -137,7 +137,7 @@ def fill_louver(bm, obj, front_face, back_face, prop):
     """Create louvers from face
     """
     xyz = local_xyz(front_face)
-    dw_thickness = (front_face.calc_center_median()-back_face.calc_center_median()).length
+    dw_thickness = (front_face.calc_center_bounds()-back_face.calc_center_bounds()).length
     # XXX Louver margin should not exceed smallest face dimension
     prop.margin = min(prop.margin, min(calc_face_dimensions(front_face)) / 2)
 
@@ -163,7 +163,7 @@ def fill_louver(bm, obj, front_face, back_face, prop):
         lauver_faces = subdivide_face_vertically(bm, front_face, widths=[extra_width]+[prop.louver_width]*louver_count)[1:]
     bmesh.ops.split_edges(bm, edges=list({e for f in lauver_faces for e in f.edges}))
     for f in lauver_faces:
-        bmesh.ops.rotate(bm, verts=f.verts, cent=f.calc_center_median(), matrix=Matrix.Rotation(math.radians(30.0), 3, -xyz[0]))
+        bmesh.ops.rotate(bm, verts=f.verts, cent=f.calc_center_bounds(), matrix=Matrix.Rotation(math.radians(30.0), 3, -xyz[0]))
     lauver_faces += filter_geom(bmesh.ops.solidify(bm, geom=lauver_faces, thickness=0.005)["geom"], BMFace)
     add_faces_to_map(bm, [lauver_faces], [FaceMap.LOUVERS], obj=obj)
 

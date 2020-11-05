@@ -42,5 +42,5 @@ def add_object(face, offset, libpath, asset_type, category, asset, track, up):
     local_offset = xyz[0]*offset.x + xyz[1]*offset.y + xyz[2]*offset.z
     
     for obj in objects:
-        obj.matrix_local.translation = face.calc_center_median() + local_offset
+        obj.matrix_local.translation = face.calc_center_bounds() + local_offset
         align_obj(obj, face.normal, track=track, up=up)

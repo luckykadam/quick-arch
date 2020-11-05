@@ -54,7 +54,7 @@ def build_roof(context, props):
 def create_roof(bm, faces, prop):
     """Create roof types
     """
-    roof_origin = mean_vector([f.calc_center_median() for f in faces])
+    roof_origin = mean_vector([f.calc_center_bounds() for f in faces])
     if prop.type == "FLAT":
         roof = split_faces(bm, [faces], ["Roof"], delete_original=False)[0]
         link_objects([roof], bpy.context.object.users_collection)
@@ -96,7 +96,7 @@ def create_flat_roof(roof, prop):
 def create_gable_roof(bm, faces, prop):
     """ Create gable roof
     """
-    median = mean_vector([f.calc_center_median() for f in faces])
+    median = mean_vector([f.calc_center_bounds() for f in faces])
     original_edges = boundary_edges(faces)
 
     # -- get verts in anti-clockwise order (required by straight skeleton)
@@ -122,7 +122,7 @@ def create_gable_roof(bm, faces, prop):
 def create_hip_roof(bm, faces, prop):
     """Create a hip roof
     """
-    median = mean_vector([f.calc_center_median() for f in faces])
+    median = mean_vector([f.calc_center_bounds() for f in faces])
     original_edges = boundary_edges(faces)
 
     # -- get verts in anti-clockwise order (required by straight skeleton)

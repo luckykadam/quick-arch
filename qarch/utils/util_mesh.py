@@ -356,7 +356,7 @@ def get_bottom_faces(faces, n=1):
 
 
 def sort_faces(faces, direction):
-    return sorted(faces, key=lambda f: direction.dot(f.calc_center_median()))
+    return sorted(faces, key=lambda f: direction.dot(f.calc_center_bounds()))
 
 
 def sort_edges(edges, direction):
@@ -368,7 +368,7 @@ def sort_verts(verts, direction):
 
 
 def get_opposite_face(face, faces, n=1):
-    return sorted([f for f in faces if f!=face], key=lambda f:(face.calc_center_median()-f.calc_center_median()).length)[0]
+    return sorted([f for f in faces if f!=face], key=lambda f:(face.calc_center_bounds()-f.calc_center_bounds()).length)[0]
 
 
 def get_closest_edges(edge, edges, n=1):
