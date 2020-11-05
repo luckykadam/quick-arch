@@ -63,6 +63,8 @@ class AssetProperty(bpy.types.PropertyGroup):
         col = layout.column()
         col.prop(self, "asset_type")
         col.prop(self, "category")
+        col = col.column()
+        col.scale_y = 1.5
         col.template_icon_view(self, 'asset', show_labels=True)
 
         layout.separator()
