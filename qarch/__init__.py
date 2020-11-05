@@ -17,7 +17,7 @@ bl_info = {
 
 class QARCH_PT_mesh_tools(bpy.types.Panel):
 
-    bl_label = "Mesh Tools"
+    bl_label = "Quick Arch Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Quick Arch"
@@ -50,7 +50,8 @@ class QARCH_PT_mesh_tools(bpy.types.Panel):
 
 class QARCH_PT_material_tools(bpy.types.Panel):
 
-    bl_label = "Material Tools"
+    bl_label = "Face Maps"
+    bl_parent_id = "QARCH_PT_mesh_tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Quick Arch"
@@ -71,10 +72,12 @@ class QARCH_PT_material_tools(bpy.types.Panel):
         if facemap:
             rows = 4
 
-        if not len(ob.face_maps):
+        if len(ob.face_maps) == 0:
+            layout.label(text="No Face Maps found")
             return
 
-        layout.label(text="Face Maps")
+
+        # layout.label(text="Face Maps")
 
         row = layout.row()
         args = ob, "face_maps", ob.face_maps, "active_index"
