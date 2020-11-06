@@ -57,10 +57,10 @@ class QARCH_PT_material_tools(bpy.types.Panel):
     bl_category = "Quick Arch"
     bl_options = {"DEFAULT_CLOSED"}
 
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        return obj and obj.type == "MESH"
+    # @classmethod
+    # def poll(cls, context):
+    #     obj = context.object
+    #     return obj and obj.type == "MESH"
 
     def draw(self, context):
         layout = self.layout
