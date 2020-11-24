@@ -64,28 +64,28 @@ class MultigroupProperty(bpy.types.PropertyGroup):
                 col.label(text="Window")
                 self.window.draw(context, col)
 
-            layout.separator()
-            col = layout.column(align=True)
-            col.prop(self, "different_widths")
-            if self.different_widths:
-                col.prop(self, "width_ratio")
+        layout.separator()
+        col = layout.column(align=True)
+        col.prop(self, "different_widths")
+        if self.different_widths:
+            col.prop(self, "width_ratio")
 
-            layout.separator()
-            col = layout.column(align=True)
-            if not self.infer_values_switch:
-                col.prop(self, "infer_values_switch", icon="RIGHTARROW", emboss=False)
-            else:
-                col.prop(self, "infer_values_switch", icon="DOWNARROW_HLT", emboss=False)
-                values = infer_values(self, self.components, 1 if not self.different_widths else self.width_ratio)
-                if 'd' in self.components:
-                    for key,value in values.items():
-                        if key.startswith("Door"):
-                            row = col.row(align=True)
-                            row.label(text=str(key))
-                            row.label(text=str(value))
-                if 'w' in self.components:
-                    for key,value in values.items():
-                        if key.startswith("Window"):
-                            row = col.row(align=True)
-                            row.label(text=str(key))
-                            row.label(text=str(value))
+        layout.separator()
+        col = layout.column(align=True)
+        if not self.infer_values_switch:
+            col.prop(self, "infer_values_switch", icon="RIGHTARROW", emboss=False)
+        else:
+            col.prop(self, "infer_values_switch", icon="DOWNARROW_HLT", emboss=False)
+            values = infer_values(self, self.components, 1 if not self.different_widths else self.width_ratio)
+            if 'd' in self.components:
+                for key,value in values.items():
+                    if key.startswith("Door"):
+                        row = col.row(align=True)
+                        row.label(text=str(key))
+                        row.label(text=str(value))
+            if 'w' in self.components:
+                for key,value in values.items():
+                    if key.startswith("Window"):
+                        row = col.row(align=True)
+                        row.label(text=str(key))
+                        row.label(text=str(value))
