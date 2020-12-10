@@ -151,4 +151,4 @@ def mean_vector(x):
     sum = Vector((0,0,0))
     for a in x:
         sum += a
-    return sum/len(x)
+    return sum/len(x) if len(x) else sum

@@ -101,6 +101,10 @@ def is_parallel(a, b):
     return vec_equal(a, b) or vec_opposite(a, b)
 
 
+def is_connected(v1, v2):
+    return v1.index in { e.other_vert(v2).index for e in v2.link_edges }
+
+
 # def sort_edges_clockwise(edges):
 #     """ sort edges clockwise based on angle from their median center
 #     """

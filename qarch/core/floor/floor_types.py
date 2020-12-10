@@ -14,6 +14,8 @@ from ...utils import (
     verify_facemaps_for_object,
     add_facemaps,
     deselect,
+    is_connected,
+    mean_vector,
 )
 from ..validations import validate, some_selection, flat_face_validation
 from ..roof.roof_types import create_roof
@@ -98,12 +100,28 @@ def extrude_slabs(bm, faces, normal, height, outset):
     return floor, slabs, ceil
 
 
+def calculate_diff(v, original_positions, original_directions, final_positions):
+    linked_verts = {e.other_vert(v) for e in v.link_edges}
+    print("{} linked_verts: {}".format(v.index, [v.index for v in linked_verts]))
+    linked_verts_displacement = [ (final_positions[v2.index]-original_positions[v2.index]).dot(original_directions[(v2.index,v.index)]) for v2 in linked_verts ]
+    return mean_vector(linked_verts_displacement)
+
 def extrude_walls(bm, faces, normal, height, bounding_wall_thickness, internal_wall_thickness):
     # extrude exterior wall faces
     ceil, walls, floor = extrude_face_region(
         bm, faces, height, normal, keep_original=True)
     dup_floor = filter_geom(bmesh.ops.duplicate(
         bm, geom=floor)["geom"], BMFace)
+    # print("initial_verts: {}".format({v.index for f in dup_floor for v in f.verts}))
+    # verts = {v for f in dup_floor for v in f.verts}
+    old_verts = {v for f in dup_floor for v in f.verts}
+    original_positions = { v.index: v.co for v in old_verts }
+    # print("original_positions: {}".format(original_positions))
+    original_directions = { (v1.index,v2.index):(v2.co - v1.co).normalized() for v1 in old_verts for v2 in old_verts if v1.index!=v2.index and is_connected(v1,v2)}
+    # print("original_directions: {}".format(original_directions))
+    for v in old_verts:
+        linked_verts = {e.other_vert(v) for e in v.link_edges}
+        print("{} linked_verts: {}".format(v.index, [v.index for v in linked_verts]))
 
     # inset room cluster
     bmesh.ops.delete(
@@ -111,6 +129,17 @@ def extrude_walls(bm, faces, normal, height, bounding_wall_thickness, internal_w
         geom=bmesh.ops.inset_region(bm, faces=dup_floor, thickness=bounding_wall_thickness-internal_wall_thickness/2,
                                     use_even_offset=True, use_boundary=True)["faces"],
         context="FACES")
+    # print("final_verts: {}".format({v.index for f in dup_floor for v in f.verts}))
+    new_verts = {v for f in dup_floor for v in f.verts}
+    for v in new_verts:
+        linked_verts = {e.other_vert(v) for e in v.link_edges}
+        print("{} linked_verts: {}".format(v.index, [v.index for v in linked_verts]))
+    final_positions = { v.index: v.co for v in new_verts }
+    for v in new_verts:
+        print("displacement {}: {}".format(v.index, (final_positions[v.index]-original_positions[v.index]).length))
+    # print("final_positions: {}".format(final_positions))
+    diff = { v.index: calculate_diff(v, original_positions, original_directions, final_positions) for v in new_verts }
+    print("diff: {}".format(diff))
     # innset individual room
     bmesh.ops.delete(
         bm,
