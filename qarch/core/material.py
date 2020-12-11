@@ -139,5 +139,3 @@ def register_material():
 def unregister_material():
     for cls in classes:
         bpy.utils.unregister_class(cls)
-
-    del bpy.types.Object.facemap_materials
