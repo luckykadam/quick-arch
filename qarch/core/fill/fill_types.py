@@ -24,11 +24,6 @@ from ...utils import (
 )
 
 
-class FillUser(Enum):
-    DOOR = auto()
-    WINDOW = auto()
-
-
 def fill_face(bm, obj, front_face, back_face, fill_prop):
     verify_facemaps_for_object(obj)
     if fill_prop.fill_type == "PANELS":
@@ -75,7 +70,7 @@ def fill_panel(bm, obj, front_face, back_face, prop):
         )
 
 
-def fill_glass_panes(bm, obj, front_face, back_face, prop, user=FillUser.DOOR):
+def fill_glass_panes(bm, obj, front_face, back_face, prop):
     """Create glass panes on face
     """
     if prop.count_x + prop.count_y == 0:
@@ -84,7 +79,7 @@ def fill_glass_panes(bm, obj, front_face, back_face, prop, user=FillUser.DOOR):
 
     for face in [front_face, back_face]:
         width, height = calc_face_dimensions(face)
-        if not round(width) or not round(height):
+        if not round(width, 1) or not round(height, 1):
             return
 
         # XXX Ensure margin is less than parent face size
