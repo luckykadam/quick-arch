@@ -7,4 +7,4 @@ fi
 echo "preparing release $1"
 
 addon_zip="Quick Arch $1 - Do not unzip!.zip"
-zip -r "$addon_zip" qarch
+zip -r "$addon_zip" qarch -x '*/.git/*' -x '*/.DS_Store/*' -x '*/__pycache__/*'
