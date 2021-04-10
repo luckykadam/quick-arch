@@ -1,6 +1,7 @@
 import bpy
-from bpy.props import EnumProperty, FloatProperty, BoolProperty
+from bpy.props import EnumProperty, FloatProperty, BoolProperty, PointerProperty
 
+from ..roof_top import RoofTopProperty
 
 class RoofProperty(bpy.types.PropertyGroup):
     roof_types = [
@@ -41,6 +42,9 @@ class RoofProperty(bpy.types.PropertyGroup):
         description="Height of entire roof",
     )
 
+    add_roof_top: BoolProperty(name="Add Roof Top", default=True)
+    roof_top_prop: PointerProperty(type=RoofTopProperty)
+
     def draw(self, context, layout):
 
         layout.separator()
@@ -49,3 +53,8 @@ class RoofProperty(bpy.types.PropertyGroup):
         col.prop(self, "thickness")
         col.prop(self, "outset")
         col.prop(self, "height")
+
+        col.separator()
+        col.prop(self, "add_roof_top")
+        if self.add_roof_top:
+            self.roof_top_prop.draw(context, col)

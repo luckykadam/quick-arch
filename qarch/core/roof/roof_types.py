@@ -19,6 +19,7 @@ from ...utils import (
     deselect,
 )
 from ..validations import validate, some_selection, flat_face_validation
+from ..roof_top.roof_top_types import create_roof_top
 
 
 @crash_safe
@@ -30,18 +31,21 @@ def build_roof(context, props):
     with managed_bmesh_edit(context.edit_object) as bm:
         faces = [f for f in bm.faces if f.select]
         deselect(faces)
-        create_roof(bm, faces, props)
+        top_faces = create_roof(bm, faces, props)
     return {"FINISHED"}
 
 
-def create_roof(bm, faces, prop):
+def create_roof(bm, faces, props):
     """Create roof types
     """
     roof_origin = mean_vector([f.calc_center_bounds() for f in faces])
-    if prop.type == "GABLE":
-        top_faces = create_gable_roof(bm, faces, prop)
-    elif prop.type == "HIP":
-        top_faces = create_hip_roof(bm, faces, prop)
+    if props.type == "GABLE":
+        top_faces = create_gable_roof(bm, faces, props)
+    elif props.type == "HIP":
+        top_faces = create_hip_roof(bm, faces, props)
+    if props.add_roof_top:
+        create_roof_top(bm, top_faces, props.roof_top_prop)
+    return top_faces
 
 
 def create_gable_roof(bm, faces, prop):
