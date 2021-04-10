@@ -2,17 +2,7 @@ import bpy
 from bpy.props import EnumProperty, FloatProperty, BoolProperty
 
 
-class RoofProperty(bpy.types.PropertyGroup):
-    roof_types = [
-        ("GABLE", "Gable", "", 1),
-        ("HIP", "Hip", "", 2),
-    ]
-    type: EnumProperty(
-        name="Roof Type",
-        items=roof_types,
-        default="GABLE",
-        description="Type of roof to create",
-    )
+class RoofTopProperty(bpy.types.PropertyGroup):
 
     thickness: FloatProperty(
         name="Thickness",
@@ -32,20 +22,9 @@ class RoofProperty(bpy.types.PropertyGroup):
         description="Outset of roof hangs",
     )
 
-    height: FloatProperty(
-        name="Height",
-        min=0.01,
-        max=10.0,
-        default=1,
-        unit="LENGTH",
-        description="Height of entire roof",
-    )
-
     def draw(self, context, layout):
 
         layout.separator()
         col = layout.column(align=True)
-        col.prop(self, "type", text="")
         col.prop(self, "thickness")
         col.prop(self, "outset")
-        col.prop(self, "height")

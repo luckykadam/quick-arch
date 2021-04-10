@@ -3,6 +3,7 @@ import bpy
 from .fill import register_fill, unregister_fill
 from .door import register_door, unregister_door
 from .roof import register_roof, unregister_roof
+from .roof_top import register_roof_top, unregister_roof_top
 from .floor import register_floor, unregister_floor
 from .stairs import register_stairs, unregister_stairs
 from .window import register_window, unregister_window
@@ -25,6 +26,7 @@ register_funcs = (
     register_fill,
     register_door,
     register_roof,
+    register_roof_top,
     register_floor,
     register_window,
     register_stairs,
@@ -42,6 +44,7 @@ unregister_funcs = (
     unregister_fill,
     unregister_door,
     unregister_roof,
+    unregister_roof_top,
     unregister_floor,
     unregister_window,
     unregister_stairs,

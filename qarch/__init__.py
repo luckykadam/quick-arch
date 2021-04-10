@@ -32,7 +32,9 @@ class QARCH_PT_mesh_tools(bpy.types.Panel):
         row.operator("qarch.add_floorplan")
         row = col.row(align=True)
         row.operator("qarch.add_floors")
+        row = col.row(align=True)
         row.operator("qarch.add_roof")
+        row.operator("qarch.add_roof_top")
 
         col = layout.column(align=True)
         row = col.row(align=True)

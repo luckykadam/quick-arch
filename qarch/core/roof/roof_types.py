@@ -1,38 +1,21 @@
 import bmesh, bpy
 import mathutils, math
-import numpy as np
 from mathutils import Vector
-from bmesh.types import BMVert, BMFace
 from ...utils import (
     equal,
     vec_equal,
     select,
-    FaceMap,
     filter_invalid,
     edge_vector,
     skeletonize,
-    filter_geom,
-    map_new_faces,
-    add_faces_to_map,
-    calc_edge_median,
     set_roof_type_hip,
     set_roof_type_gable,
-    filter_vertical_edges,
-    add_facemaps,
-    extrude_face_region,
-    split_faces,
-    link_objects,
-    make_parent,
-    set_origin,
     verify_facemaps_for_object,
     managed_bmesh,
     mean_vector,
     boundary_edges,
     crash_safe,
     managed_bmesh_edit,
-    extrude_face_region,
-    get_top_edges,
-    filter_horizontal_edges,
     deselect,
 )
 from ..validations import validate, some_selection, flat_face_validation
@@ -55,42 +38,10 @@ def create_roof(bm, faces, prop):
     """Create roof types
     """
     roof_origin = mean_vector([f.calc_center_bounds() for f in faces])
-    if prop.type == "FLAT":
-        roof = split_faces(bm, [faces], ["Roof"], delete_original=False)[0]
-        link_objects([roof], bpy.context.object.users_collection)
-        make_parent([roof], bpy.context.object)
-        set_origin(roof, roof_origin)
-        add_facemaps([FaceMap.ROOF, FaceMap.ROOF_HANGS], roof)
-        create_flat_roof(roof, prop)
-    elif prop.type == "GABLE":
+    if prop.type == "GABLE":
         top_faces = create_gable_roof(bm, faces, prop)
-        roof = split_faces(bm, [top_faces], ["Roof"], delete_original=False)[0]
-        link_objects([roof], bpy.context.object.users_collection)
-        make_parent([roof], bpy.context.object)
-        set_origin(roof, roof_origin)
-        add_facemaps([FaceMap.ROOF, FaceMap.ROOF_HANGS], roof)
-        gable_process_open(roof, prop)
     elif prop.type == "HIP":
         top_faces = create_hip_roof(bm, faces, prop)
-        roof = split_faces(bm, [top_faces], ["Roof"], delete_original=False)[0]
-        link_objects([roof], bpy.context.object.users_collection)
-        make_parent([roof], bpy.context.object)
-        set_origin(roof, roof_origin)
-        add_facemaps([FaceMap.ROOF, FaceMap.ROOF_HANGS], roof)
-        gable_process_open(roof, prop)
-
-
-# # @map_new_faces(FaceMap.ROOF)
-def create_flat_roof(roof, prop):
-    """Create a flat roof
-    """
-    verify_facemaps_for_object(roof)
-    with managed_bmesh(roof) as bm:
-        faces = list(bm.faces)
-        bmesh.ops.reverse_faces(bm, faces=faces)
-        # -- extrude up
-        top_faces,surrounding_faces,_ = extrude_face_region(bm, faces, prop.thickness, Vector((0,0,1)), keep_original=True)
-        add_faces_to_map(bm, [top_faces,surrounding_faces], [FaceMap.ROOF,FaceMap.ROOF_HANGS], roof)
 
 
 def create_gable_roof(bm, faces, prop):
@@ -311,53 +262,3 @@ def join_intersections_and_get_skeleton_edges(bm, skeleton_verts, skeleton_edges
     new_verts = join_intersecting_verts_and_edges(bm, skeleton_edges, skeleton_verts)
     skeleton_verts = filter_invalid(skeleton_verts) + new_verts
     return list(set(e for v in skeleton_verts for e in v.link_edges))
-
-
-def gable_process_box(bm, roof_faces, prop):
-    """ Finalize box gable roof type
-    """
-    # -- extrude upward faces
-    top_faces = [f for f in roof_faces if f.normal.z]
-    result = bmesh.ops.extrude_face_region(bm, geom=top_faces).get("geom")
-
-    # -- move abit upwards (by amount roof thickness)
-    bmesh.ops.translate(
-        bm, verts=filter_geom(result, BMVert), vec=(0, 0, prop.thickness)
-    )
-    bmesh.ops.delete(bm, geom=top_faces, context="FACES")
-
-    # -- face maps
-    link_faces = {
-        f for fc in filter_geom(result, BMFace) for e in fc.edges
-        for f in e.link_faces if not f.normal.z
-    }
-    link_faces.update(set(filter_invalid(roof_faces)))
-    add_faces_to_map(bm, [list(link_faces)], [FaceMap.ROOF_HANGS])
-
-
-def gable_process_open(roof, prop):
-    """ Finalize open gable roof type
-    """
-    verify_facemaps_for_object(roof)
-    with managed_bmesh(roof) as bm:
-        top_faces = list(bm.faces)
-        # -- extrude
-        _, side_faces, _ = extrude_face_region(bm, top_faces, prop.thickness, Vector((0,0,1)))
-        dissolve_edges = list({get_top_edges([e for e in f.edges if e not in filter_vertical_edges(f.edges, f.normal)])[0] for f in side_faces})
-
-        # -- outset side faces
-        bmesh.ops.inset_region(
-            bm, use_even_offset=True, faces=side_faces, depth=prop.outset, use_boundary=True
-        )
-
-        # -- move lower vertical edges abit down (inorder to maintain roof slope)
-        bmesh.ops.translate(bm, verts=list({v for f in side_faces for v in f.verts if filter_horizontal_edges(f.edges, f.normal)}), vec=(0, 0, -prop.outset / 2))
-
-        # -- post cleanup
-        bmesh.ops.dissolve_edges(bm, edges=dissolve_edges, use_verts=True)
-
-        # -- facemaps
-        linked = {f for fc in side_faces for e in fc.edges for f in e.link_faces}
-        linked_top = [f for f in linked if f.normal.z > 0]
-        linked_bot = [f for f in linked if f.normal.z < 0]
-        add_faces_to_map(bm, [linked_top, side_faces + linked_bot], [FaceMap.ROOF, FaceMap.ROOF_HANGS], obj=roof)
