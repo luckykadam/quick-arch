@@ -116,30 +116,30 @@ def add_handles(window_faces, window_origins, window_thickness, handle_type, fli
     for window_face,window_origin in zip(window_faces,window_origins):
         directory = Path(os.path.dirname(__file__)).parent.parent
         if handle_type == "STRAIGHT":
-            # handle_front = import_blend(directory+"/assets/handle_straight.blend")[0]
-            handle_back = import_blend(os.path.join(directory, 'assets', 'handle_straight.blend'))[0]
+            handle_front = import_blend(os.path.join(directory, 'assets', 'handle_straight.blend'))[0]
+            # handle_back = import_blend(os.path.join(directory, 'assets', 'handle_straight.blend'))[0]
         if handle_type == "ROUND":
-            # handle_front = import_blend(directory+"/assets/handle_round.blend")[0]
-            handle_back = import_blend(os.path.join(directory, 'assets', 'handle_round.blend'))[0]
+            handle_front = import_blend(os.path.join(directory, 'assets', 'handle_round.blend'))[0]
+            # handle_back = import_blend(os.path.join(directory, 'assets', 'handle_round.blend'))[0]
         xyz = local_xyz(window_face)
         window_width,_ = calc_face_dimensions(window_face)
         hinge = "LEFT" if local_xyz(window_face)[0].dot(window_origin-window_face.calc_center_bounds()) < 0 else "RIGHT"
         if hinge == "LEFT":
-            # handle_origin_front = xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
-            handle_origin_back = xyz[0] * (window_width-0.06) + xyz[1] * 0.5
-            # handle_front_scale = (1,-1,-1) if flip else (1,-1,1)
-            handle_back_scale = (1,-1,1) if flip else (1,-1,-1)
+            handle_origin_front = xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
+            # handle_origin_back = xyz[0] * (window_width-0.06) + xyz[1] * 0.5
+            handle_front_scale = (1,-1,-1) if flip else (1,-1,1)
+            # handle_back_scale = (1,-1,1) if flip else (1,-1,-1)
         elif hinge == "RIGHT":
-            # handle_origin_front = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
-            handle_origin_back = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5
-            # handle_front_scale = (1,1,-1) if flip else (1,1,1)
-            handle_back_scale = (1,1,1) if flip else (1,1,-1)
-        # handles.append([handle_front])
-        # handle_origins.append([handle_origin_front])
-        # handle_scales.append([handle_front_scale])
-        handles.append([handle_back])
-        handle_origins.append([handle_origin_back])
-        handle_scales.append([handle_back_scale])
+            handle_origin_front = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
+            # handle_origin_back = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5
+            handle_front_scale = (1,1,-1) if flip else (1,1,1)
+            # handle_back_scale = (1,1,1) if flip else (1,1,-1)
+        handles.append([handle_front])
+        handle_origins.append([handle_origin_front])
+        handle_scales.append([handle_front_scale])
+        # handles.append([handle_back])
+        # handle_origins.append([handle_origin_back])
+        # handle_scales.append([handle_back_scale])
     return handles, handle_origins, handle_scales
 
 
