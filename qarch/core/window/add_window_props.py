@@ -9,10 +9,11 @@ class AddWindowProperty(bpy.types.PropertyGroup):
 
     count: CountProperty
     only_hole: BoolProperty(name="Only hole", default=False, description="Only hole. No window/frame")
-    # arch: PointerProperty(type=ArchProperty)
+    arch: PointerProperty(type=ArchProperty)
     size_offset: PointerProperty(type=SizeOffsetProperty)
     frame: PointerProperty(type=FrameProperty)
     window: PointerProperty(type=WindowProperty)
+    add_arch: BoolProperty(name="Add Arch", default=False, description="Add arch over door/window")
     infer_values_switch: BoolProperty(name="Inferred Values", default=False, description="Inferred values")
 
     def init(self, wall_dimensions, opposite_wall_dimensions, relative_offset):
@@ -44,6 +45,12 @@ class AddWindowProperty(bpy.types.PropertyGroup):
             col = layout.column()
             col.label(text="Window")
             self.window.draw(context, col)
+
+            layout.separator()
+            col = layout.column(align=True)
+            col.prop(self, "add_arch")
+            if self.add_arch:
+                self.arch.draw(context, col)
 
             layout.separator()
             col = layout.column(align=True)

@@ -56,11 +56,11 @@ def create_window(bm, faces, prop):
         array_faces = subdivide_face_horizontally(bm, face, widths=[prop.size_offset.size.x]*prop.count)
         for aface in array_faces:
             normal = aface.normal.copy()
-            face = create_multigroup_hole(bm, aface, prop.size_offset.size, prop.size_offset.offset, 'w', 1, prop.frame.margin, prop.frame.depth)[0]
+            dw_faces, arch_faces = create_multigroup_hole(bm, aface, prop.size_offset.size, prop.size_offset.offset, 'w', 1, prop.frame.margin, prop.frame.depth, prop.add_arch, prop.arch)
             if prop.only_hole:
-                bmesh.ops.delete(bm, geom=[face], context="FACES")
+                bmesh.ops.delete(bm, geom=dw_faces+arch_faces, context="FACES")
             else:
-                _, (window_faces,bar_faces,window_origins), (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, [face], prop.frame, 'w', None, prop.window)
+                _, (window_faces,bar_faces,window_origins), (arch_faces,arch_origins), (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, dw_faces, arch_faces, prop.frame, 'w', None, prop.window, prop.add_arch, prop.arch)
                 handles,handle_origins,handle_scales = add_handles(window_faces, window_origins, prop.window.thickness, prop.window.handle, prop.window.flip_direction)
                 windows = split_faces(bm, [[f] for f in window_faces], ["Window" for f in window_faces])
                 frame = split_faces(bm, [frame_faces], ["Frame"])[0]
@@ -90,6 +90,14 @@ def create_window(bm, faces, prop):
                     handle[0].matrix_local.translation = origin[0]
                     align_obj(handle[0], normal)
                     handle[0].scale = scale[0]
+
+                # create arch
+                if prop.add_arch:
+                    archs = split_faces(bm, [[f] for f in arch_faces], ["Arch" for f in arch_faces])
+                    link_objects(archs, bpy.context.object.users_collection)
+                    make_parent(archs, bpy.context.object)
+                    for arch,arch_origin in zip(archs,arch_origins):
+                        set_origin(arch, arch_origin)
 
                 for window in windows:
                     fill_window(window, prop)

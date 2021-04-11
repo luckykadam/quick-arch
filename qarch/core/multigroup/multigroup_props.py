@@ -17,11 +17,12 @@ class MultigroupProperty(bpy.types.PropertyGroup):
 
     count: CountProperty
     only_hole: BoolProperty(name="Only hole", default=False, description="Only hole. No door/window/frame")
-    # arch: PointerProperty(type=ArchProperty)
+    arch: PointerProperty(type=ArchProperty)
     size_offset: PointerProperty(type=SizeOffsetProperty)
     frame: PointerProperty(type=FrameProperty)
     door: PointerProperty(type=DoorProperty)
     window: PointerProperty(type=WindowProperty)
+    add_arch: BoolProperty(name="Add Arch", default=False, description="Add arch over door/window")
     different_widths: BoolProperty(name="Different w/d Widths", default=False, description="Different window/door widths")
     width_ratio: FloatProperty(name="w/d Width ratio", default=1.2, min=0.1, max=10, description="Ration of Window to Door width")
     infer_values_switch: BoolProperty(name="Inferred Values", default=False, description="Inferred values")
@@ -69,6 +70,12 @@ class MultigroupProperty(bpy.types.PropertyGroup):
         col.prop(self, "different_widths")
         if self.different_widths:
             col.prop(self, "width_ratio")
+
+        layout.separator()
+        col = layout.column(align=True)
+        col.prop(self, "add_arch")
+        if self.add_arch:
+            self.arch.draw(context, col)
 
         layout.separator()
         col = layout.column(align=True)

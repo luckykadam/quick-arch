@@ -59,11 +59,11 @@ def create_multigroup(bm, faces, prop):
         array_faces = subdivide_face_horizontally(bm, face, widths=[prop.size_offset.size.x]*prop.count)
         for aface in array_faces:
             normal = aface.normal.copy()
-            faces = create_multigroup_hole(bm, aface, prop.size_offset.size,  prop.size_offset.offset, prop.components, prop.width_ratio if prop.different_widths else 1, prop.frame.margin, prop.frame.depth)
+            dw_faces,arch_faces = create_multigroup_hole(bm, aface, prop.size_offset.size,  prop.size_offset.offset, prop.components, prop.width_ratio if prop.different_widths else 1, prop.frame.margin, prop.frame.depth, prop.add_arch, prop.arch)
             if prop.only_hole:
-                bmesh.ops.delete(bm, geom=faces, context="FACES")
+                bmesh.ops.delete(bm, geom=dw_faces+arch_faces, context="FACES")
             else:
-                (door_faces,door_origins), (window_faces,bar_faces,window_origins), (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, faces, prop.frame, prop.components, prop.door, prop.window)
+                (door_faces,door_origins), (window_faces,bar_faces,window_origins), (arch_faces,arch_origins), (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, dw_faces, arch_faces, prop.frame, prop.components, prop.door, prop.window, prop.add_arch, prop.arch)
                 knobs,knob_origins,knob_scales = add_knobs(door_faces, door_origins, prop.door.thickness, prop.door.knob, prop.door.flip_direction)
                 handles,handle_origins,handle_scales = add_handles(window_faces, window_origins, prop.window.thickness, prop.window.handle, prop.window.flip_direction)
                 doors = split_faces(bm, [[f] for f in door_faces], ["Door" for f in door_faces])
@@ -109,6 +109,14 @@ def create_multigroup(bm, faces, prop):
                     handle[0].matrix_local.translation = origin[0]
                     align_obj(handle[0], normal)
                     handle[0].scale = scale[0]
+
+                # create arch
+                if prop.add_arch:
+                    archs = split_faces(bm, [[f] for f in arch_faces], ["Arch" for f in arch_faces])
+                    link_objects(archs, bpy.context.object.users_collection)
+                    make_parent(archs, bpy.context.object)
+                    for arch,arch_origin in zip(archs,arch_origins):
+                        set_origin(arch, arch_origin)
 
                 for door in doors:
                     fill_door(door, prop)

@@ -20,35 +20,15 @@ def fill_arch(bm, face, prop):
         pane_arch_face(bm, face, prop.glass_fill)
 
 
-def create_arch(bm, top_edges, frame_faces, arch_prop, frame_thickness, xyz):
+def create_arch(bm, top_edges, height, resolution, function, xyz, inner=False):
     """ Create arch using top edges of extreme frames
     """
     verts = sort_verts([v for e in top_edges for v in e.verts], xyz[0])
-    arc_edges = [
-        bmesh.ops.connect_verts(bm, verts=[verts[0], verts[-1]])["edges"].pop(),
-        bmesh.ops.connect_verts(bm, verts=[verts[1], verts[-2]])["edges"].pop(),
-    ]
-
-    resolution, height, function = arch_prop.resolution, arch_prop.height, arch_prop.function
-    upper_arc = filter_geom(
-        arc_edge(bm, arc_edges[0], resolution, height, xyz, function)["geom_split"], BMEdge)
-    lower_arc = filter_geom(
-        arc_edge(bm, arc_edges[1], resolution, height-frame_thickness, xyz, function)["geom_split"], BMEdge)
-    arc_edges = [*upper_arc, *lower_arc]
-
-    arc_face = min(upper_arc[arch_prop.resolution//2].link_faces, key=lambda f: f.calc_center_bounds().z)
-    bmesh.ops.delete(bm, geom=[arc_face], context="FACES")
-
-    arch_frame_faces = bmesh.ops.bridge_loops(bm, edges=arc_edges)["faces"]
-    arch_face = min(lower_arc[arch_prop.resolution//2].link_faces, key=lambda f: f.calc_center_bounds().z)
-
-    if len(verts) == 4: # corner case
-        verts = sort_verts([v for e in top_edges for v in e.verts], xyz[0])
-        new_edge = bmesh.ops.connect_verts(bm, verts=[verts[1], verts[-2]])['edges'].pop()
-        new_face = get_bottom_faces(new_edge.link_faces).pop()
-        arch_frame_faces.append(new_face)
-
-    return arch_face, arch_frame_faces
+    arc_edges = bmesh.ops.connect_verts(bm, verts=[verts[1], verts[-2]] if inner else [verts[0], verts[-1]])["edges"].pop()
+    arc = filter_geom(arc_edge(bm, arc_edges, resolution, height, xyz, function)["geom_split"], BMEdge)
+    arch_face = min(arc[resolution//2].link_faces, key=lambda f: f.calc_center_bounds().z)
+    frame_faces = list(set([f for e in arch_face.edges for f in e.link_faces if f is not arch_face]))
+    return [arch_face], frame_faces
 
 
 # @map_new_faces(FaceMap.PANES)

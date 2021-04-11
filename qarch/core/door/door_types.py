@@ -57,11 +57,11 @@ def create_door(bm, faces, prop):
         array_faces = subdivide_face_horizontally(bm, face, widths=[prop.size_offset.size.x] * prop.count)
         for aface in array_faces:
             normal = aface.normal.copy()
-            face = create_multigroup_hole(bm, aface, prop.size_offset.size, prop.size_offset.offset, 'd', 1, prop.frame.margin, prop.frame.depth)[0]
+            dw_faces, arch_faces = create_multigroup_hole(bm, aface, prop.size_offset.size, prop.size_offset.offset, 'd', 1, prop.frame.margin, prop.frame.depth, prop.add_arch, prop.arch)
             if prop.only_hole:
-                bmesh.ops.delete(bm, geom=[face], context="FACES")
+                bmesh.ops.delete(bm, geom=dw_faces+arch_faces, context="FACES")
             else:
-                (door_faces,door_origins), _, (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, [face], prop.frame, 'd', prop.door, None)
+                (door_faces,door_origins), _, _, (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, dw_faces, arch_faces, prop.frame, 'd', prop.door, None, prop.add_arch, prop.arch)
                 knobs,knob_origins,knob_scales = add_knobs(door_faces, door_origins, prop.door.thickness, prop.door.knob, prop.door.flip_direction)
                 doors = split_faces(bm, [[f] for f in door_faces], ["Door" for f in door_faces])
                 frame = split_faces(bm, [frame_faces], ["Frame"])[0]
@@ -85,6 +85,14 @@ def create_door(bm, faces, prop):
                     knob[1].matrix_local.translation = origin[1]
                     align_obj(knob[1], normal)
                     knob[1].scale = scale[1]
+
+                # create arch
+                if prop.add_arch:
+                    archs = split_faces(bm, [[f] for f in arch_faces], ["Arch" for f in arch_faces])
+                    link_objects(archs, bpy.context.object.users_collection)
+                    make_parent(archs, bpy.context.object)
+                    for arch,arch_origin in zip(archs,arch_origins):
+                        set_origin(arch, arch_origin)
 
                 for door in doors:
                     fill_door(door, prop)

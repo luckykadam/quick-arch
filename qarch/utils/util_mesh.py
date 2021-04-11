@@ -223,7 +223,7 @@ def arc_edge(bm, edge, resolution, height, xyz, function="SPHERE"):
     """
     length = edge.calc_length()
     median = calc_edge_median(edge)
-    arc_direction = edge_vector(edge).cross(xyz[2])
+    arc_direction = xyz[1]
     orient = xyz[1] if edge_is_vertical(edge) else xyz[0]
     ret = bmesh.ops.subdivide_edges(bm, edges=[edge], cuts=resolution)
 

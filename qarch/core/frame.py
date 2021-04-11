@@ -29,16 +29,18 @@ from ..utils import (
     vec_equal,
     edge_vector,
     duplicate_faces,
+    get_top_faces,
 )
 
+from .arch import create_arch
 
-def create_multigroup_frame_and_dw(bm, faces, frame_prop, components, door_prop, window_prop):
-    normal = faces[0].normal.copy()
-    x,y,_ = local_xyz(faces[0])
+def create_multigroup_frame_and_dw(bm, dw_faces, arch_faces, frame_prop, components, door_prop, window_prop, add_arch, arch_prop):
+    normal = dw_faces[0].normal.copy()
+    x,y,_ = local_xyz(dw_faces[0])
 
     dws = parse_components(components)
-    frame_origin = calc_edge_median(get_bottom_edges(list({e for f in faces for e in f.edges}))[0])
-    door_faces, window_faces, frame_faces = create_frame(bm, faces, dws, frame_prop, door_prop, window_prop)
+    frame_origin = calc_edge_median(get_bottom_edges(list({e for f in dw_faces for e in f.edges}))[0])
+    door_faces, window_faces, arch_faces, frame_faces = create_frame(bm, dw_faces, arch_faces, dws, frame_prop, door_prop, window_prop, add_arch, arch_prop)
     bar_faces = [] if window_prop and not window_prop.add_bars else duplicate_faces(bm, window_faces)
     if door_prop and door_prop.double:
         both_door_origins = [
@@ -54,7 +56,6 @@ def create_multigroup_frame_and_dw(bm, faces, frame_prop, components, door_prop,
         ]
         door_faces = [f for door_face in door_faces for f in subdivide_face_horizontally(bm, door_face, widths=[get_top_edges(door_face.edges)[0].calc_length()/2]*2)]
         door_origins = [o for origins in both_door_origins for o in origins]
-
     else:
         door_origins = [
             common_vert(
@@ -63,6 +64,7 @@ def create_multigroup_frame_and_dw(bm, faces, frame_prop, components, door_prop,
             ).co - door_prop.thickness*(normal if not door_prop.flip_direction else -normal)
             for f in door_faces
         ]
+
     if window_prop and window_prop.double:
         both_window_origins = [
             (
@@ -86,18 +88,21 @@ def create_multigroup_frame_and_dw(bm, faces, frame_prop, components, door_prop,
             for f in window_faces
         ]
 
-    return (door_faces,door_origins), (window_faces,bar_faces,window_origins), (frame_faces,frame_origin)
+    arch_origins = [calc_edge_median(get_bottom_edges(f.edges)[0]) for f in arch_faces]
+
+    return (door_faces,door_origins), (window_faces,bar_faces,window_origins), (arch_faces,arch_origins), (frame_faces,frame_origin)
 
 
-def create_frame(bm, faces, dws, frame_prop, door_prop, window_prop):
-    normal = faces[0].normal.copy()
+def create_frame(bm, dw_faces, arch_faces, dws, frame_prop, door_prop, window_prop, add_arch, arch_prop):
+    normal = dw_faces[0].normal.copy()
 
     doors = []
     windows = []
+    archs = []
     frames = []
 
     # create dw faces
-    for i, (dw, f) in enumerate(zip(dws, faces)):
+    for i, (dw, f) in enumerate(zip(dws, dw_faces)):
         if dw['type'] == 'door':
             _, face_height = calc_face_dimensions(f)
             door_height = face_height - frame_prop.margin
@@ -110,18 +115,24 @@ def create_frame(bm, faces, dws, frame_prop, door_prop, window_prop):
             ws, fs = create_window_frame_split(bm, f, dw['count'], frame_prop.margin, i == 0, i == len(dws)-1)
             windows.extend(ws)
             frames.extend(fs)
+    # create arch faces
+    if add_arch:
+        top_edges = get_top_edges({e for f in frames for e in f.edges},n=2*len(dw_faces)+1)
+        archs, arch_frames = create_arch(bm,top_edges,arch_prop.height-frame_prop.margin,arch_prop.resolution,arch_prop.function,local_xyz(arch_faces[0]), inner=True)
+        frames = list(set(frames+arch_frames))
 
     # separate dw faces and add depth
-    frame_inner_edges = [[e for e in bmesh.ops.split_edges(bm, edges=f.edges)["edges"] if e not in f.edges] for f in doors+windows]
+    frame_inner_edges = [[e for e in bmesh.ops.split_edges(bm, edges=f.edges)["edges"] if e not in f.edges] for f in doors+windows+archs]
     if doors:
         add_dw_depth(bm, doors, frame_prop.thickness, frame_prop.thickness-door_prop.thickness, normal, door_prop.flip_direction)
     if windows:
         add_dw_depth(bm, windows, frame_prop.thickness, frame_prop.thickness-window_prop.thickness, normal, window_prop.flip_direction)
-
+    if archs:
+        add_dw_depth(bm, archs, frame_prop.thickness, frame_prop.thickness-window_prop.thickness, normal, window_prop.flip_direction)
     # add frame thickness
-    frames += add_frame_thickness(bm, frames, frame_inner_edges, frame_prop.thickness, frame_prop.border_thickness, dws, door_prop, window_prop, normal)
+    frames += add_frame_thickness(bm, frames, frame_inner_edges, frame_prop.thickness, frame_prop.border_thickness, dws + [{"type":"window","count":1}] if add_arch else [], door_prop, window_prop, arch_prop, normal)
 
-    return doors, windows, frames
+    return doors, windows, archs, frames
 
 
 def add_dw_depth(bm, faces, frame_thickness, dw_depth, normal, flip=False):
@@ -132,7 +143,7 @@ def add_dw_depth(bm, faces, frame_thickness, dw_depth, normal, flip=False):
         bmesh.ops.translate(bm, vec=-normal*dw_depth, verts=[v for f in faces for v in f.verts])
 
 
-def add_frame_thickness(bm, frames, frame_inner_edges, frame_thickness, border_thickness, dws, door_prop, window_prop, normal):
+def add_frame_thickness(bm, frames, frame_inner_edges, frame_thickness, border_thickness, dws, door_prop, window_prop, arch_prop, normal):
     # add framee thickness
     bmesh.ops.translate(bm, vec=-normal*frame_thickness, verts=list({v for f in frames for v in f.verts}))
     a,b,c = extrude_face_region(bm, frames, frame_thickness, normal, keep_original=True)
@@ -203,7 +214,7 @@ def create_window_frame_split(bm, face, count, frame_margin, first=False, last=F
     return v_faces[1::3], v_frames + v_faces[::3] + v_faces[2::3]
 
 
-def create_multigroup_hole(bm, face, size, offset, components, width_ratio, frame_margin, frame_depth):
+def create_multigroup_hole(bm, face, size, offset, components, width_ratio, frame_margin, frame_depth, add_arch, arch_prop):
     """ Use properties from SizeOffset to subdivide face into regular quads
     """
     opposite_face = get_opposite_face(face, [f for f in bm.faces if f!=face])
@@ -213,26 +224,39 @@ def create_multigroup_hole(bm, face, size, offset, components, width_ratio, fram
     opposite_wall_width,_ = calc_face_dimensions(opposite_face)
 
     n_doors_comp = len([c for c in parse_components(components) if c["type"]=="door"])
+    dw_count = len(parse_components(components))
 
     f1 = create_multigroup_split(bm, face, size, offset, components, width_ratio, frame_margin)
+    a1 = []
+    if add_arch:
+        top_edges = get_top_edges( {e for f in f1 for e in f.edges}, n=dw_count)
+        a1 = create_arch(bm, top_edges, arch_prop.height, arch_prop.resolution, arch_prop.function, local_xyz(face))[0]
     opposite_offset = Vector((wall_width - offset.x - size.x - ( wall_width/2 - opposite_wall_width/2 - relative_offset.x),offset.y))
-    s1 = get_top_edges(boundary_edges(f1), n=len(boundary_edges(f1))-n_doors_comp)
+    s1 = get_top_edges(boundary_edges(f1+a1), n=len(boundary_edges(f1+a1))-n_doors_comp)
     s1,_ = extrude_edges(bm, s1, -f1[0].normal, min(frame_depth, wall_thickness))
 
     if relative_offset.length < 0.5:
         f2 = create_multigroup_split(bm, opposite_face, size, opposite_offset, reversed(components), width_ratio, frame_margin)
-        s2 = get_top_edges(boundary_edges(f2), n=len(boundary_edges(f2))-n_doors_comp)
+        a2 = []
+        if add_arch:
+            top_edges = get_top_edges({e for f in f2 for e in f.edges},n=dw_count)
+            a2 = create_arch(bm, top_edges, arch_prop.height, arch_prop.resolution, arch_prop.function, local_xyz(opposite_face))[0]
+        s2 = get_top_edges(boundary_edges(f2+a2), n=len(boundary_edges(f2+a2))-n_doors_comp)
         for e1 in s1:
-            e2 = get_closest_edges(e1, {e for f in f2 for e in f.edges})[0]
+            e2 = get_closest_edges(e1, s2)[0]
             bmesh.ops.contextual_create(bm, geom=list(e1.verts)+list(e2.verts))
-        bmesh.ops.delete(bm, geom=f2, context="FACES")
+        bmesh.ops.delete(bm, geom=f2+a2, context="FACES")
 
     # add depth to frame faces
-    dup_faces = filter_geom(bmesh.ops.duplicate(bm, geom=f1)["geom"], BMFace)
+    dup_faces = filter_geom(bmesh.ops.duplicate(bm, geom=f1+a1)["geom"], BMFace)
     bmesh.ops.translate(bm, vec=-f1[0].normal*frame_depth, verts=list({v for f in dup_faces for v in f.verts}))
-    bmesh.ops.delete(bm, geom=f1, context="FACES")
-
-    return sort_faces(dup_faces, local_xyz(dup_faces[0])[0])
+    bmesh.ops.delete(bm, geom=f1+a1, context="FACES")
+    xyz = local_xyz(dup_faces[0])
+    if add_arch:
+        dw_faces,arch_faces = sort_faces(dup_faces,xyz[1])[:-1], [sort_faces(dup_faces,xyz[1])[-1]]
+    else:
+        dw_faces,arch_faces=dup_faces,[]
+    return sort_faces(dw_faces, xyz[0]), arch_faces
 
 
 def create_multigroup_split(bm, face, size, offset, components, width_ratio, frame_margin):
