@@ -238,6 +238,7 @@ def create_multigroup_hole(bm, face, size, offset, components, width_ratio, fram
         a1,_,bottom_face = create_arch(bm, top_edges, arch_prop.height, arch_prop.resolution, arch_prop.function, local_xyz(face))
         if bottom_face:
             f1.append(bottom_face)
+        f1 = [f for f in f1 if f not in a1]
     opposite_offset = Vector((wall_width - offset.x - size.x - ( wall_width/2 - opposite_wall_width/2 - relative_offset.x),offset.y))
     s1 = get_top_edges(boundary_edges(f1+a1), n=len(boundary_edges(f1+a1))-n_doors_comp)
     s1,_ = extrude_edges(bm, s1, -f1[0].normal, min(frame_depth, wall_thickness))
@@ -250,6 +251,7 @@ def create_multigroup_hole(bm, face, size, offset, components, width_ratio, fram
             a2,_,bottom_face = create_arch(bm, top_edges, arch_prop.height, arch_prop.resolution, arch_prop.function, local_xyz(opposite_face))
             if bottom_face:
                 f2.append(bottom_face)
+            f2 = [f for f in f2 if f not in a2]
         s2 = get_top_edges(boundary_edges(f2+a2), n=len(boundary_edges(f2+a2))-n_doors_comp)
         for e1 in s1:
             e2 = get_closest_edges(e1, s2)[0]
