@@ -133,7 +133,7 @@ def create_frame(bm, dw_faces, arch_faces, dws, frame_prop, door_prop, window_pr
     if windows:
         add_dw_depth(bm, windows, frame_prop.thickness, frame_prop.thickness-window_prop.thickness, normal, window_prop.flip_direction)
     if archs:
-        add_dw_depth(bm, archs, frame_prop.thickness, frame_prop.thickness-window_prop.thickness, normal, window_prop.flip_direction)
+        add_dw_depth(bm, archs, frame_prop.thickness, frame_prop.thickness-arch_prop.thickness, normal, arch_prop.flip_direction)
     # add frame thickness
     frames += add_frame_thickness(bm, frames, frame_inner_edges, frame_prop.thickness, frame_prop.border_thickness, dws + [{"type":"window","count":1}] if add_arch else [], door_prop, window_prop, arch_prop, normal)
 
@@ -161,7 +161,7 @@ def add_frame_thickness(bm, frames, frame_inner_edges, frame_thickness, border_t
             if dw=='door':
                 frame_faces += add_border(bm, inner_faces, frame_thickness-door_prop.thickness, border_thickness, normal if not door_prop.flip_direction else -normal)
             elif dw=='window':
-                frame_faces += add_border(bm, inner_faces, frame_thickness-window_prop.thickness, border_thickness, normal if not window_prop.flip_direction else -normal)
+                frame_faces += add_border(bm, inner_faces, frame_thickness-arch_prop.thickness, border_thickness, normal if not arch_prop.flip_direction else -normal)
     return frame_faces
 
 

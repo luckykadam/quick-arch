@@ -149,6 +149,15 @@ class ArchProperty(bpy.types.PropertyGroup):
         description="Radius of the arc",
     )
 
+    thickness: FloatProperty(
+        name="Thickness",
+        min=0.0,
+        max=1.0,
+        default=0.03,
+        unit="LENGTH",
+        description="Thickness of arch",
+    )
+
     func_items = [("SINE", "Sine", "", 0), ("SPHERE", "Sphere", "", 1)]
     function: EnumProperty(
         name="Offset Function",
@@ -156,18 +165,23 @@ class ArchProperty(bpy.types.PropertyGroup):
         default="SPHERE",
         description="Type of offset for arch",
     )
+    flip_direction: BoolProperty(name="Flip Direction", default=False, description="Flip arch directions")
 
     def init(self, parent_height):
         self["parent_height"] = parent_height
         self["default_height"] = 0.4
 
-    def draw(self, context, box):
+    def draw(self, context, layout):
 
-        col = box.column(align=True)
+        col = layout.column()
+        row = col.row(align=True)
+        row.prop(self, "flip_direction")
+
         row = col.row(align=True)
         row.prop(self, "function", expand=True)
         col.prop(self, "resolution")
         col.prop(self, "height")
+        col.prop(self, "thickness")
 
 
 class FrameProperty(bpy.types.PropertyGroup):
