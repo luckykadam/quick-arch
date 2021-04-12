@@ -30,6 +30,7 @@ from ..utils import (
     edge_vector,
     duplicate_faces,
     get_top_faces,
+    filter_invalid,
 )
 
 from .arch import create_arch
@@ -90,7 +91,7 @@ def create_multigroup_frame_and_dw(bm, dw_faces, arch_faces, frame_prop, compone
 
     arch_origins = [calc_edge_median(get_bottom_edges(f.edges)[0]) for f in arch_faces]
 
-    return (door_faces,door_origins), (window_faces,bar_faces,window_origins), (arch_faces,arch_origins), (frame_faces,frame_origin)
+    return (filter_invalid(door_faces),door_origins), (filter_invalid(window_faces),bar_faces,window_origins), (filter_invalid(arch_faces),arch_origins), (filter_invalid(frame_faces),frame_origin)
 
 
 def create_frame(bm, dw_faces, arch_faces, dws, frame_prop, door_prop, window_prop, add_arch, arch_prop):
@@ -118,8 +119,12 @@ def create_frame(bm, dw_faces, arch_faces, dws, frame_prop, door_prop, window_pr
     # create arch faces
     if add_arch:
         top_edges = get_top_edges({e for f in frames for e in f.edges},n=2*len(dw_faces)+1)
-        archs, arch_frames = create_arch(bm,top_edges,arch_prop.height-frame_prop.margin,arch_prop.resolution,arch_prop.function,local_xyz(arch_faces[0]), inner=True)
-        frames = list(set(frames+arch_frames))
+        archs, frame_faces, bottom_face = create_arch(bm,top_edges,arch_prop.height-frame_prop.margin,arch_prop.resolution,arch_prop.function,local_xyz(arch_faces[0]), inner=True)
+        if frame_faces:
+            frames += frame_faces
+        if bottom_face:
+            frames = list(set(frames+[bottom_face]))
+        frames = [f for f in frames if f not in archs]
 
     # separate dw faces and add depth
     frame_inner_edges = [[e for e in bmesh.ops.split_edges(bm, edges=f.edges)["edges"] if e not in f.edges] for f in doors+windows+archs]
@@ -230,7 +235,9 @@ def create_multigroup_hole(bm, face, size, offset, components, width_ratio, fram
     a1 = []
     if add_arch:
         top_edges = get_top_edges( {e for f in f1 for e in f.edges}, n=dw_count)
-        a1 = create_arch(bm, top_edges, arch_prop.height, arch_prop.resolution, arch_prop.function, local_xyz(face))[0]
+        a1,_,bottom_face = create_arch(bm, top_edges, arch_prop.height, arch_prop.resolution, arch_prop.function, local_xyz(face))
+        if bottom_face:
+            f1.append(bottom_face)
     opposite_offset = Vector((wall_width - offset.x - size.x - ( wall_width/2 - opposite_wall_width/2 - relative_offset.x),offset.y))
     s1 = get_top_edges(boundary_edges(f1+a1), n=len(boundary_edges(f1+a1))-n_doors_comp)
     s1,_ = extrude_edges(bm, s1, -f1[0].normal, min(frame_depth, wall_thickness))
@@ -240,17 +247,19 @@ def create_multigroup_hole(bm, face, size, offset, components, width_ratio, fram
         a2 = []
         if add_arch:
             top_edges = get_top_edges({e for f in f2 for e in f.edges},n=dw_count)
-            a2 = create_arch(bm, top_edges, arch_prop.height, arch_prop.resolution, arch_prop.function, local_xyz(opposite_face))[0]
+            a2,_,bottom_face = create_arch(bm, top_edges, arch_prop.height, arch_prop.resolution, arch_prop.function, local_xyz(opposite_face))
+            if bottom_face:
+                f2.append(bottom_face)
         s2 = get_top_edges(boundary_edges(f2+a2), n=len(boundary_edges(f2+a2))-n_doors_comp)
         for e1 in s1:
             e2 = get_closest_edges(e1, s2)[0]
             bmesh.ops.contextual_create(bm, geom=list(e1.verts)+list(e2.verts))
-        bmesh.ops.delete(bm, geom=f2+a2, context="FACES")
+        bmesh.ops.delete(bm, geom=list(set(f2+a2)), context="FACES")
 
     # add depth to frame faces
-    dup_faces = filter_geom(bmesh.ops.duplicate(bm, geom=f1+a1)["geom"], BMFace)
+    dup_faces = filter_geom(bmesh.ops.duplicate(bm, geom=list(set(f1+a1)))["geom"], BMFace)
     bmesh.ops.translate(bm, vec=-f1[0].normal*frame_depth, verts=list({v for f in dup_faces for v in f.verts}))
-    bmesh.ops.delete(bm, geom=f1+a1, context="FACES")
+    bmesh.ops.delete(bm, geom=list(set(f1+a1)), context="FACES")
     xyz = local_xyz(dup_faces[0])
     if add_arch:
         dw_faces,arch_faces = sort_faces(dup_faces,xyz[1])[:-1], [sort_faces(dup_faces,xyz[1])[-1]]
