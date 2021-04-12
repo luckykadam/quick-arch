@@ -61,7 +61,7 @@ def create_door(bm, faces, prop):
             if prop.only_hole:
                 bmesh.ops.delete(bm, geom=dw_faces+arch_faces, context="FACES")
             else:
-                (door_faces,door_origins), _, _, (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, dw_faces, arch_faces, prop.frame, 'd', prop.door, None, prop.add_arch, prop.arch)
+                (door_faces,door_origins), _, (arch_faces,arch_origins), (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, dw_faces, arch_faces, prop.frame, 'd', prop.door, None, prop.add_arch, prop.arch)
                 knobs,knob_origins,knob_scales = add_knobs(door_faces, door_origins, prop.door.thickness, prop.door.knob, prop.door.flip_direction)
                 doors = split_faces(bm, [[f] for f in door_faces], ["Door" for f in door_faces])
                 frame = split_faces(bm, [frame_faces], ["Frame"])[0]
