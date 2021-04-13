@@ -138,15 +138,26 @@ class ArchProperty(bpy.types.PropertyGroup):
         description="Number of segements for the arc",
     )
 
-    height: FloatProperty(
+    straight_height: FloatProperty(
+        name="Straight Height",
+        # get=get_height,
+        # set=set_height,
+        min=0.1,
+        max=2.0,
+        default=0.2,
+        unit="LENGTH",
+        description="Height of the straight part",
+    )
+
+    arc_height: FloatProperty(
         name="Arc Height",
         # get=get_height,
         # set=set_height,
         min=0.1,
         max=2.0,
-        default=0.5,
+        default=0.4,
         unit="LENGTH",
-        description="Radius of the arc",
+        description="Height of the arc",
     )
 
     thickness: FloatProperty(
@@ -177,11 +188,15 @@ class ArchProperty(bpy.types.PropertyGroup):
         row = col.row(align=True)
         row.prop(self, "flip_direction")
 
+        col = layout.column(align=True)
         row = col.row(align=True)
         row.prop(self, "function", expand=True)
-        col.prop(self, "resolution")
-        col.prop(self, "height")
-        col.prop(self, "thickness")
+        row = col.row(align=True)
+        row.prop(self, "resolution")
+        row.prop(self, "thickness")
+        row = col.row(align=True)
+        row.prop(self, "straight_height")
+        row.prop(self, "arc_height")
 
 
 class FrameProperty(bpy.types.PropertyGroup):

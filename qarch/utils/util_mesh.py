@@ -199,6 +199,23 @@ def subdivide_faces(bm, faces, direction, widths):
     return sort_faces(list({f for e in inner_edges for f in e.link_faces}), direction)
 
 
+def subdivide_edge(bm, edge, direction, widths):
+    """ Subdivide edge in a direction, widths in the direction
+    """
+    dir = direction.copy()
+    cuts = len(widths) - 1
+    res = bmesh.ops.subdivide_edges(bm, edges=[edge], cuts=cuts)
+    inner_verts = sort_verts(filter_geom(res.get("geom_split"), BMVert), dir)
+    distance = sum(widths) / len(widths)
+    final_position = 0.0
+    for i in range(cuts):
+        original_position = (i + 1) * distance
+        final_position += widths[i]
+        diff = final_position - original_position
+        bmesh.ops.translate(bm, verts=[inner_verts[i]], vec=diff * dir)
+    return sort_edges(filter_geom(res.get("geom_split"), BMEdge), dir)
+
+
 def subdivide_edges(bm, edges, direction, widths):
     """ Subdivide edges in a direction, widths in the direction
     """
@@ -225,10 +242,10 @@ def arc_edge(bm, edge, resolution, height, xyz, function="SPHERE"):
     median = calc_edge_median(edge)
     arc_direction = xyz[1]
     orient = xyz[1] if edge_is_vertical(edge) else xyz[0]
-    ret = bmesh.ops.subdivide_edges(bm, edges=[edge], cuts=resolution)
+    curved_edges = filter_geom(bmesh.ops.subdivide_edges(bm, edges=[edge], cuts=resolution)["geom_split"], bmesh.types.BMEdge)
 
     verts = sort_verts(
-        list({v for e in filter_geom(ret["geom_split"], bmesh.types.BMEdge) for v in e.verts}),
+        list({v for e in curved_edges for v in e.verts}),
         orient
     )
     theta = math.pi / (len(verts) - 1)
@@ -244,7 +261,7 @@ def arc_edge(bm, edge, resolution, height, xyz, function="SPHERE"):
             v.co += arc_direction * math.sin(angle) * height
 
     {"SINE": arc_sine, "SPHERE": arc_sphere}.get(function)(verts)
-    return ret
+    return curved_edges
 
 
 def extrude_face(bm, face, extrude_depth):
