@@ -177,6 +177,7 @@ class ArchProperty(bpy.types.PropertyGroup):
         description="Type of offset for arch",
     )
     flip_direction: BoolProperty(name="Flip Direction", default=False, description="Flip arch directions")
+    curved: BoolProperty(name="Curved Top", default=False, description="Curved Top")
 
     def init(self, parent_height):
         self["parent_height"] = parent_height
@@ -185,18 +186,19 @@ class ArchProperty(bpy.types.PropertyGroup):
     def draw(self, context, layout):
 
         col = layout.column()
+        col = col.column(align=True)
+        col.prop(self, "straight_height")
         row = col.row(align=True)
         row.prop(self, "flip_direction")
+        row.prop(self, "curved")
 
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.prop(self, "function", expand=True)
-        row = col.row(align=True)
-        row.prop(self, "resolution")
-        row.prop(self, "thickness")
-        row = col.row(align=True)
-        row.prop(self, "straight_height")
-        row.prop(self, "arc_height")
+        if self.curved:
+            col = layout.column(align=True)
+            row = col.row(align=True)
+            row.prop(self, "function", expand=True)
+            col.prop(self, "resolution")
+            col.prop(self, "thickness")
+            col.prop(self, "arc_height")
 
 
 class FrameProperty(bpy.types.PropertyGroup):

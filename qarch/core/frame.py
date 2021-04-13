@@ -123,17 +123,29 @@ def create_frame(bm, dw_faces, arch_faces, dws, frame_prop, door_prop, window_pr
     if add_arch:
         top_edges = sort_edges(get_top_edges({e for f in frames for e in f.edges},n=2*len(dw_faces)+1),xyz[0])
         top_face = max(top_edges[0].link_faces, key=lambda f: f.calc_center_bounds().z)
-        arc_end_verts = sort_verts(sort_verts(top_face.verts, xyz[1])[2*len(dw_faces)+2:2*len(dw_faces)+4],xyz[0])
-        top_edge = bmesh.ops.connect_verts(bm, verts=arc_end_verts)['edges'][0]
-        new_top_edges = subdivide_edge(bm, top_edge, xyz[0] ,[frame_prop.margin,top_edge.calc_length()-2*frame_prop.margin,frame_prop.margin])
-        e1 = bmesh.ops.connect_verts(bm, verts=[sort_verts(top_edges[0].verts,xyz[0])[-1], sort_verts(new_top_edges[0].verts,xyz[0])[-1]])['edges'][0]
-        e2 = bmesh.ops.connect_verts(bm, verts=[sort_verts(top_edges[-1].verts,xyz[0])[0], sort_verts(new_top_edges[-1].verts,xyz[0])[0]])['edges'][0]
-        new_faces = sort_faces(list(set(list(e1.link_faces)+list(e2.link_faces))),xyz[0])
-        frames += [new_faces[0], new_faces[-1]]
-        archs, frame_faces = create_arch(bm,[new_top_edges[1]],arch_prop.arc_height-frame_prop.margin,arch_prop.resolution,arch_prop.function,local_xyz(arch_faces[0]), inner=True)
-        if frame_faces:
-            frames += frame_faces
-        frames = [f for f in frames if f not in archs]
+        if arch_prop.curved:
+            arc_end_verts = sort_verts(sort_verts(top_face.verts, xyz[1])[2*len(dw_faces)+2:2*len(dw_faces)+4],xyz[0])
+            top_edge = bmesh.ops.connect_verts(bm, verts=arc_end_verts)['edges'][0]
+            new_top_edges = subdivide_edge(bm, top_edge, xyz[0] ,[frame_prop.margin,top_edge.calc_length()-2*frame_prop.margin,frame_prop.margin])
+            e1 = bmesh.ops.connect_verts(bm, verts=[sort_verts(top_edges[0].verts,xyz[0])[-1], sort_verts(new_top_edges[0].verts,xyz[0])[-1]])['edges'][0]
+            e2 = bmesh.ops.connect_verts(bm, verts=[sort_verts(top_edges[-1].verts,xyz[0])[0], sort_verts(new_top_edges[-1].verts,xyz[0])[0]])['edges'][0]
+            new_faces = sort_faces(list(set(list(e1.link_faces)+list(e2.link_faces))),xyz[0])
+            frames += [new_faces[0], new_faces[-1]]
+            archs, frame_faces = create_arch(bm,[new_top_edges[1]],arch_prop.arc_height-frame_prop.margin,arch_prop.resolution,arch_prop.function,local_xyz(arch_faces[0]), inner=True)
+            if frame_faces:
+                frames += frame_faces
+            frames = [f for f in frames if f not in archs]
+        else:
+            top_edge = max(top_face.edges, key=lambda e: calc_edge_median(e).z)
+            new_top_edges = subdivide_edge(bm, top_edge, xyz[0] ,[frame_prop.margin,top_edge.calc_length()-2*frame_prop.margin,frame_prop.margin])
+            e1 = bmesh.ops.connect_verts(bm, verts=[sort_verts(top_edges[0].verts,xyz[0])[-1], sort_verts(new_top_edges[0].verts,xyz[0])[-1]])['edges'][0]
+            e2 = bmesh.ops.connect_verts(bm, verts=[sort_verts(top_edges[-1].verts,xyz[0])[0], sort_verts(new_top_edges[-1].verts,xyz[0])[0]])['edges'][0]
+            new_faces = sort_faces(list(set(list(e1.link_faces)+list(e2.link_faces))),xyz[0])
+            frames += [new_faces[0], new_faces[-1]]
+            new_faces = subdivide_faces(bm, [new_faces[1]], xyz[1], [e1.calc_length()-frame_prop.margin, frame_prop.margin])
+            frames += [new_faces[1]]
+            archs = [new_faces[0]]
+            frames = [f for f in frames if f not in archs]
 
     # separate dw faces and add depth
     frame_inner_edges = [[e for e in bmesh.ops.split_edges(bm, edges=f.edges)["edges"] if e not in f.edges] for f in doors+windows+archs]
@@ -247,9 +259,11 @@ def create_multigroup_hole(bm, face, size, offset, components, width_ratio, fram
         top_edges = get_top_edges( {e for f in f1 for e in f.edges}, n=dw_count)
         top_face = max(top_edges[0].link_faces, key=lambda f: f.calc_center_bounds().z)
         a,b = subdivide_face_vertically(bm, top_face, [arch_prop.straight_height,calc_face_dimensions(top_face)[1]-arch_prop.straight_height])
+        a1 = [a]
         top_edge = max(a.edges, key=lambda e: calc_edge_median(e).z)
-        a1,_ = create_arch(bm, [top_edge], arch_prop.arc_height, arch_prop.resolution, arch_prop.function, local_xyz(face))
-        f1 = [f for f in f1 if f not in a1]
+        if arch_prop.curved:
+            a1,_ = create_arch(bm, [top_edge], arch_prop.arc_height, arch_prop.resolution, arch_prop.function, local_xyz(face))
+            f1 = [f for f in f1 if f not in a1]
     opposite_offset = Vector((wall_width - offset.x - size.x - ( wall_width/2 - opposite_wall_width/2 - relative_offset.x),offset.y))
     s1 = sort_edges(get_top_edges(boundary_edges(f1+a1), n=len(boundary_edges(f1+a1))-n_doors_comp),xyz[0])
     s1,_ = extrude_edges(bm, s1, -f1[0].normal, min(frame_depth, wall_thickness))
@@ -261,9 +275,11 @@ def create_multigroup_hole(bm, face, size, offset, components, width_ratio, fram
             top_edges = sort_edges(get_top_edges({e for f in f2 for e in f.edges},n=dw_count),xyz[0])
             top_face = max(top_edges[0].link_faces, key=lambda f: f.calc_center_bounds().z)
             a,b = subdivide_face_vertically(bm, top_face, [arch_prop.straight_height,calc_face_dimensions(top_face)[1]-arch_prop.straight_height])
+            a2 = [a]
             top_edge = max(a.edges, key=lambda e: calc_edge_median(e).z)
-            a2,_ = create_arch(bm, [top_edge], arch_prop.arc_height, arch_prop.resolution, arch_prop.function, local_xyz(opposite_face))
-            f2 = [f for f in f2 if f not in a2]
+            if arch_prop.curved:
+                a2,_ = create_arch(bm, [top_edge], arch_prop.arc_height, arch_prop.resolution, arch_prop.function, local_xyz(opposite_face))
+                f2 = [f for f in f2 if f not in a2]
         s2 = get_top_edges(boundary_edges(f2+a2), n=len(boundary_edges(f2+a2))-n_doors_comp)
         for e1 in s1:
             e2 = get_closest_edges(e1, s2)[0]
