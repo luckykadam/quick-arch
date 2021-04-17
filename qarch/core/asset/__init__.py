@@ -2,8 +2,9 @@ import bpy
 
 from .asset_ops import QARCH_OT_add_asset
 from .asset_props import AssetProperty
+from .asset_panel import AssetPanelProperty
 
-classes = (AssetProperty, QARCH_OT_add_asset)
+classes = (AssetProperty, AssetPanelProperty, QARCH_OT_add_asset)
 
 
 def register_asset():

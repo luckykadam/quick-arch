@@ -15,7 +15,7 @@ class QARCH_OT_add_asset(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.object is not None and context.mode == "EDIT_MESH" and os.path.isdir(bpy.context.scene.qarch_settings.libpath)
+        return context.object is not None and context.mode == "EDIT_MESH" and os.path.isdir(bpy.context.scene.qarch_asset_prop.libpath)
 
     def execute(self, context):
         return add_asset(context, self.props)

@@ -23,9 +23,10 @@ def add_asset(context, props):
     with managed_bmesh_edit(context.edit_object) as bm:
         faces = [f for f in bm.faces if f.select]
         deselect(faces)
+        qarch_asset_prop = context.scene.qarch_asset_prop
         for f in faces:
-            if props.asset_type and props.category and props.asset:
-                add_object(f, props.offset, context.scene.qarch_settings.libpath, props.asset_type, props.category, props.asset, props.track, props.up)
+            if qarch_asset_prop.asset_type and qarch_asset_prop.category and qarch_asset_prop.asset:
+                add_object(f, props.offset, qarch_asset_prop.libpath, qarch_asset_prop.asset_type, qarch_asset_prop.category, qarch_asset_prop.asset, props.track, props.up)
     return {"FINISHED"}
 
 def add_object(face, offset, libpath, asset_type, category, asset, track, up):

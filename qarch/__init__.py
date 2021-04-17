@@ -46,9 +46,6 @@ class QARCH_PT_mesh_tools(bpy.types.Panel):
         row.operator("qarch.add_balcony")
         row.operator("qarch.add_stairs")
 
-        row = layout.row(align=True)
-        row.operator("qarch.add_asset", icon="ADD")
-
 
 class QARCH_PT_material_tools(bpy.types.Panel):
 
@@ -119,8 +116,8 @@ class QARCH_PT_material_tools(bpy.types.Panel):
             # layout.template_ID_preview(face_map_material, "material", hide_buttons=True)
 
 
-class QARCH_PT_settings(bpy.types.Panel):
-    bl_label = "Settings"
+class QARCH_PT_asset(bpy.types.Panel):
+    bl_label = "Asset"
     bl_parent_id = "QARCH_PT_mesh_tools"
     bl_options = {'DEFAULT_CLOSED'}
     bl_space_type = "VIEW_3D"
@@ -128,13 +125,23 @@ class QARCH_PT_settings(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        col = layout.column(align=True)
+        col = layout.column()
         col.use_property_split = True
         col.use_property_decorate = False
-        col.prop(context.scene.qarch_settings, "libpath")
+        qarch_asset_prop = context.scene.qarch_asset_prop
+        col.prop(qarch_asset_prop, "libpath")
+        if qarch_asset_prop.libpath:
+            col.prop(context.scene.qarch_asset_prop, "asset_type")
+        if qarch_asset_prop.asset_type:
+            col.prop(context.scene.qarch_asset_prop, "category")
+        if qarch_asset_prop.category:
+            col.prop(context.scene.qarch_asset_prop, "asset")
+
+        row = layout.row(align=True)
+        row.operator("qarch.add_asset", icon="ADD")
 
 
-classes = (QARCH_PT_mesh_tools, QARCH_PT_material_tools, QARCH_PT_settings)
+classes = (QARCH_PT_mesh_tools, QARCH_PT_asset, QARCH_PT_material_tools)
 
 
 def register():
