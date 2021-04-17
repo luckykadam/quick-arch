@@ -103,7 +103,7 @@ class FillGlassPanes(bpy.types.PropertyGroup):
         name="Margin",
         min=0.01,
         max=1.0,
-        default=0.15,
+        default=0.1,
         unit="LENGTH",
         description="Margin",
     )

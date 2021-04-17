@@ -87,7 +87,7 @@ def fill_glass_panes(bm, obj, front_face, back_face, prop):
         prop.margin = min(
             prop.margin, min_dimension / 2)
 
-        bmesh.ops.inset_individual(bm, faces=[face], thickness=prop.margin)
+        bmesh.ops.inset_individual(bm, faces=[face], use_even_offset=True, thickness=prop.margin)
         quads, _ = subdivide_face_into_quads(bm, face, prop.count_x, prop.count_y, prop.pane_gap)
 
         # XXX Ensure pane border is less that size of each quad)

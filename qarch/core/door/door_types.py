@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from ..generic import clamp_count
 from ..fill import fill_face
+from ..arch import fill_arch
 
 from ...utils import (
     clamp,
@@ -93,6 +94,8 @@ def create_door(bm, faces, prop):
                     make_parent(archs, bpy.context.object)
                     for arch,arch_origin in zip(archs,arch_origins):
                         set_origin(arch, arch_origin)
+                    for arch in archs:
+                        fill_arch(arch, prop)
 
                 for door in doors:
                     fill_door(door, prop)

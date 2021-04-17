@@ -1,7 +1,8 @@
 import bpy
 from bpy.props import StringProperty, PointerProperty, BoolProperty, FloatProperty
 
-from ..generic import ArchProperty, SizeOffsetProperty, CountProperty, FrameProperty
+from ..generic import SizeOffsetProperty, CountProperty, FrameProperty
+from ..arch import ArchProperty
 from ..door.door_props import DoorProperty
 from ..window.window_props import WindowProperty
 from ...utils import get_limits, infer_values

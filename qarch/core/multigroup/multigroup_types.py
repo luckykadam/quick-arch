@@ -5,6 +5,7 @@ from ..frame import create_multigroup_frame_and_dw, create_multigroup_hole
 from ..window.window_types import fill_window, add_handles
 from ..door.door_types import fill_door, add_knobs
 from ..fill.fill_types import fill_bars
+from ..arch import fill_arch
 from ...utils import (
     valid_ngon,
     popup_message,
@@ -117,6 +118,8 @@ def create_multigroup(bm, faces, prop):
                     make_parent(archs, bpy.context.object)
                     for arch,arch_origin in zip(archs,arch_origins):
                         set_origin(arch, arch_origin)
+                    for arch in archs:
+                        fill_arch(arch, prop)
 
                 for door in doors:
                     fill_door(door, prop)
