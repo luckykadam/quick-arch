@@ -139,7 +139,7 @@ class ArchProperty(bpy.types.PropertyGroup):
     )
 
     straight_height: FloatProperty(
-        name="Straight Height",
+        name="Height",
         # get=get_height,
         # set=set_height,
         min=0.1,

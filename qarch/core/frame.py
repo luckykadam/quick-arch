@@ -121,10 +121,10 @@ def create_frame(bm, dw_faces, arch_faces, dws, frame_prop, door_prop, window_pr
             frames.extend(fs)
     # create arch faces
     if add_arch:
-        top_edges = sort_edges(get_top_edges({e for f in frames for e in f.edges},n=2*len(dw_faces)+1),xyz[0])
+        top_edges = sort_edges(get_top_edges({e for f in frames for e in f.edges},n=2*(len(doors)+len(windows))+1),xyz[0])
         top_face = max(top_edges[0].link_faces, key=lambda f: f.calc_center_bounds().z)
         if arch_prop.curved:
-            arc_end_verts = sort_verts(sort_verts(top_face.verts, xyz[1])[2*len(dw_faces)+2:2*len(dw_faces)+4],xyz[0])
+            arc_end_verts = sort_verts(sort_verts(top_face.verts, xyz[1])[2*(len(doors)+len(windows))+2:2*(len(doors)+len(windows))+4],xyz[0])
             top_edge = bmesh.ops.connect_verts(bm, verts=arc_end_verts)['edges'][0]
             new_top_edges = subdivide_edge(bm, top_edge, xyz[0] ,[frame_prop.margin,top_edge.calc_length()-2*frame_prop.margin,frame_prop.margin])
             e1 = bmesh.ops.connect_verts(bm, verts=[sort_verts(top_edges[0].verts,xyz[0])[-1], sort_verts(new_top_edges[0].verts,xyz[0])[-1]])['edges'][0]
