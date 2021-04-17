@@ -91,7 +91,10 @@ def create_multigroup_frame_and_dw(bm, dw_faces, arch_faces, frame_prop, compone
             for f in window_faces
         ]
 
-    arch_origins = [calc_edge_median(get_bottom_edges(f.edges)[0]) for f in arch_faces]
+    arch_origins = [
+        calc_edge_median(get_bottom_edges(f.edges)[0]) - arch_prop.thickness*(normal if not arch_prop.flip_direction else -normal)
+        for f in arch_faces
+    ]
 
     return (filter_invalid(door_faces),door_origins), (filter_invalid(window_faces),bar_faces,window_origins), (filter_invalid(arch_faces),arch_origins), (filter_invalid(frame_faces),frame_origin)
 
@@ -148,7 +151,11 @@ def create_frame(bm, dw_faces, arch_faces, dws, frame_prop, door_prop, window_pr
             frames = [f for f in frames if f not in archs]
 
     # separate dw faces and add depth
-    frame_inner_edges = [[e for e in bmesh.ops.split_edges(bm, edges=f.edges)["edges"] if e not in f.edges] for f in doors+windows+archs]
+    frame_inner_edges = {
+        'doors': [[e for e in bmesh.ops.split_edges(bm, edges=f.edges)["edges"] if e not in f.edges] for f in doors],
+        'windows': [[e for e in bmesh.ops.split_edges(bm, edges=f.edges)["edges"] if e not in f.edges] for f in windows],
+        'archs': [[e for e in bmesh.ops.split_edges(bm, edges=f.edges)["edges"] if e not in f.edges] for f in archs],
+    }
     if doors:
         add_dw_depth(bm, doors, frame_prop.thickness, frame_prop.thickness-door_prop.thickness, normal, door_prop.flip_direction)
     if windows:
@@ -156,7 +163,7 @@ def create_frame(bm, dw_faces, arch_faces, dws, frame_prop, door_prop, window_pr
     if archs:
         add_dw_depth(bm, archs, frame_prop.thickness, frame_prop.thickness-arch_prop.thickness, normal, arch_prop.flip_direction)
     # add frame thickness
-    frames += add_frame_thickness(bm, frames, frame_inner_edges, frame_prop.thickness, frame_prop.border_thickness, dws + [{"type":"window","count":1}] if add_arch else [], door_prop, window_prop, arch_prop, normal)
+    frames += add_frame_thickness(bm, frames, frame_inner_edges, frame_prop.thickness, frame_prop.border_thickness, door_prop, window_prop, arch_prop, normal)
 
     return doors, windows, archs, frames
 
@@ -169,20 +176,22 @@ def add_dw_depth(bm, faces, frame_thickness, dw_depth, normal, flip=False):
         bmesh.ops.translate(bm, vec=-normal*dw_depth, verts=[v for f in faces for v in f.verts])
 
 
-def add_frame_thickness(bm, frames, frame_inner_edges, frame_thickness, border_thickness, dws, door_prop, window_prop, arch_prop, normal):
+def add_frame_thickness(bm, frames, frame_inner_edges, frame_thickness, border_thickness, door_prop, window_prop, arch_prop, normal):
     # add framee thickness
     bmesh.ops.translate(bm, vec=-normal*frame_thickness, verts=list({v for f in frames for v in f.verts}))
     a,b,c = extrude_face_region(bm, frames, frame_thickness, normal, keep_original=True)
     frame_faces = a+b+c
     # add frame border
-    flattened_dws = [dw['type'] for dw in dws for i in range(dw['count'])]
     if not equal(border_thickness, 0):
-        for dw,inner_edges in zip(flattened_dws,frame_inner_edges):
+        for inner_edges in frame_inner_edges.get('doors',[]):
             inner_faces = list({f for e in inner_edges for f in e.link_faces if equal(f.normal.dot(normal),0)})
-            if dw=='door':
-                frame_faces += add_border(bm, inner_faces, frame_thickness-door_prop.thickness, border_thickness, normal if not door_prop.flip_direction else -normal)
-            elif dw=='window':
-                frame_faces += add_border(bm, inner_faces, frame_thickness-arch_prop.thickness, border_thickness, normal if not arch_prop.flip_direction else -normal)
+            frame_faces += add_border(bm, inner_faces, frame_thickness-door_prop.thickness, border_thickness, normal if not door_prop.flip_direction else -normal)
+        for inner_edges in frame_inner_edges.get('windows',[]):
+            inner_faces = list({f for e in inner_edges for f in e.link_faces if equal(f.normal.dot(normal),0)})
+            frame_faces += add_border(bm, inner_faces, frame_thickness-window_prop.thickness, border_thickness, normal if not window_prop.flip_direction else -normal)
+        for inner_edges in frame_inner_edges.get('archs',[]):
+            inner_faces = list({f for e in inner_edges for f in e.link_faces if equal(f.normal.dot(normal),0)})
+            frame_faces += add_border(bm, inner_faces, frame_thickness-arch_prop.thickness, border_thickness, normal if not arch_prop.flip_direction else -normal)
     return frame_faces
 
 
