@@ -134,7 +134,7 @@ def create_frame(bm, dw_faces, arch_faces, dws, frame_prop, door_prop, window_pr
             e2 = bmesh.ops.connect_verts(bm, verts=[sort_verts(top_edges[-1].verts,xyz[0])[0], sort_verts(new_top_edges[-1].verts,xyz[0])[0]])['edges'][0]
             new_faces = sort_faces(list(set(list(e1.link_faces)+list(e2.link_faces))),xyz[0])
             frames += [new_faces[0], new_faces[-1]]
-            archs, frame_faces = create_arch(bm,[new_top_edges[1]],arch_prop.arc_height-frame_prop.margin,arch_prop.resolution,arch_prop.function,local_xyz(arch_faces[0]), inner=True)
+            archs, frame_faces = create_arch(bm,[new_top_edges[1]],arch_prop.arc_offset,arch_prop.resolution,local_xyz(arch_faces[0]), inner=True)
             if frame_faces:
                 frames += frame_faces
             frames = [f for f in frames if f not in archs]
@@ -271,7 +271,7 @@ def create_multigroup_hole(bm, face, size, offset, components, width_ratio, fram
         a1 = [a]
         top_edge = max(a.edges, key=lambda e: calc_edge_median(e).z)
         if arch_prop.curved:
-            a1,_ = create_arch(bm, [top_edge], arch_prop.arc_height, arch_prop.resolution, arch_prop.function, local_xyz(face))
+            a1,_ = create_arch(bm, [top_edge], arch_prop.arc_offset, arch_prop.resolution, local_xyz(face))
             f1 = [f for f in f1 if f not in a1]
     opposite_offset = Vector((wall_width - offset.x - size.x - ( wall_width/2 - opposite_wall_width/2 - relative_offset.x),offset.y))
     s1 = sort_edges(get_top_edges(boundary_edges(f1+a1), n=len(boundary_edges(f1+a1))-n_doors_comp),xyz[0])
@@ -287,7 +287,7 @@ def create_multigroup_hole(bm, face, size, offset, components, width_ratio, fram
             a2 = [a]
             top_edge = max(a.edges, key=lambda e: calc_edge_median(e).z)
             if arch_prop.curved:
-                a2,_ = create_arch(bm, [top_edge], arch_prop.arc_height, arch_prop.resolution, arch_prop.function, local_xyz(opposite_face))
+                a2,_ = create_arch(bm, [top_edge], arch_prop.arc_offset, arch_prop.resolution, local_xyz(opposite_face))
                 f2 = [f for f in f2 if f not in a2]
         s2 = get_top_edges(boundary_edges(f2+a2), n=len(boundary_edges(f2+a2))-n_doors_comp)
         for e1 in s1:

@@ -66,12 +66,12 @@ def fill_arch_pane(bm, obj, front_face, back_face, prop):
 
 
 
-def create_arch(bm, top_edges, height, resolution, function, xyz, inner=False):
+def create_arch(bm, top_edges, height, resolution, xyz, inner=False):
     """ Create arch using top edges of extreme frames
     """
     verts = sort_verts(list({v for e in top_edges for v in e.verts}), xyz[0])
     arc_edges = bmesh.ops.connect_verts(bm, verts=[verts[1], verts[-2]] if inner else [verts[0], verts[-1]])["edges"].pop()
-    arc = arc_edge(bm, arc_edges, resolution, height, xyz, function)
+    arc = arc_edge(bm, arc_edges, resolution, height, xyz)
     arch_face = min(arc[resolution//2].link_faces, key=lambda f: f.calc_center_bounds().z)
     frame_faces = []
     if inner:
