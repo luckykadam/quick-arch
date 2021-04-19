@@ -123,7 +123,7 @@ class ArchProperty(bpy.types.PropertyGroup):
         max=2.0,
         default=0.4,
         unit="LENGTH",
-        description="Height of the arc",
+        description="Offset of arc center",
     )
 
     thickness: FloatProperty(
