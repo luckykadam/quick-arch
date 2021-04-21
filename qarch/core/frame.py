@@ -249,7 +249,7 @@ def create_window_frame_split(bm, face, count, frame_margin, first=False, last=F
     return v_faces[1::3], v_frames + v_faces[::3] + v_faces[2::3]
 
 
-def create_multigroup_hole(bm, face, size, offset, components, width_ratio, frame_margin, frame_depth, add_arch, arch_prop):
+def create_multigroup_hole(bm, face, size, offset, components, width_ratio, frame_margin, frame_depth, add_arch, arch_prop, only_hole):
     """ Use properties from SizeOffset to subdivide face into regular quads
     """
     xyz = local_xyz(face)
@@ -275,7 +275,8 @@ def create_multigroup_hole(bm, face, size, offset, components, width_ratio, fram
             f1 = [f for f in f1 if f not in a1]
     opposite_offset = Vector((wall_width - offset.x - size.x - ( wall_width/2 - opposite_wall_width/2 - relative_offset.x),offset.y))
     s1 = sort_edges(get_top_edges(boundary_edges(f1+a1), n=len(boundary_edges(f1+a1))-n_doors_comp),xyz[0])
-    s1,_ = extrude_edges(bm, s1, -f1[0].normal, min(frame_depth, wall_thickness))
+    if not only_hole:
+        s1,_ = extrude_edges(bm, s1, -f1[0].normal, min(frame_depth, wall_thickness))
 
     if relative_offset.length < 0.5:
         f2 = create_multigroup_split(bm, opposite_face, size, opposite_offset, reversed(components), width_ratio, frame_margin)
