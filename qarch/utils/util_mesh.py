@@ -235,7 +235,7 @@ def subdivide_edges(bm, edges, direction, widths):
     return inner_edges
 
 
-def arc_edge(bm, edge, resolution, arc_offset, xyz):
+def arc_edge(bm, edge, resolution, arc_height, arc_offset, xyz):
     """ Subdivide the given edge and offset vertices to form an arc
     """
     length = edge.calc_length()
@@ -244,6 +244,7 @@ def arc_edge(bm, edge, resolution, arc_offset, xyz):
     orient = xyz[1] if edge_is_vertical(edge) else xyz[0]
     curved_edges = filter_geom(bmesh.ops.subdivide_edges(bm, edges=[edge], cuts=resolution)["geom_split"], bmesh.types.BMEdge)
     arc_radius = math.sqrt(arc_offset**2 + (length/2)**2)
+    circular_height = arc_radius - arc_offset
     verts = sort_verts(
         list({v for e in curved_edges for v in e.verts}),
         orient
@@ -259,7 +260,7 @@ def arc_edge(bm, edge, resolution, arc_offset, xyz):
         for idx, v in enumerate(verts):
             angle = math.pi - (theta * idx) - theta_offset
             v.co = median + orient * math.cos(angle) * arc_radius
-            v.co += arc_direction * ( math.sin(angle) * arc_radius - arc_offset)
+            v.co += arc_direction * ( math.sin(angle) * arc_radius - arc_offset) * (arc_height/circular_height)
 
     arc_sphere(verts)
     return curved_edges
