@@ -16,3 +16,4 @@ def create_floorplan(bm, prop):
     obj.location = bpy.context.scene.cursor.location
     with managed_bmesh(obj) as bm:
         plane(bm, prop.width / 2, prop.length / 2)
+    return {'FINISHED'}

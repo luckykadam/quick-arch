@@ -18,8 +18,7 @@ class QARCH_OT_add_floorplan(bpy.types.Operator):
         return context.mode == "OBJECT"
 
     def execute(self, context):
-        create_floorplan(context, self.props)
-        return {"FINISHED"}
+        return create_floorplan(context, self.props)
 
     def draw(self, context):
         self.props.draw(context, self.layout)

@@ -27,6 +27,7 @@ from ...utils import (
     local_xyz,
     align_obj,
     shrink_face,
+    verify_facemaps_for_object,
 )
 from ..frame import create_multigroup_hole, create_multigroup_frame_and_dw
 from ..validations import validate, some_selection, ngon_validation, same_dimensions
@@ -37,6 +38,7 @@ from ..validations import validate, some_selection, ngon_validation, same_dimens
 def build_window(context, props):
     """ Create window from context and prop, with validations. Intented to be called directly from operator.
     """
+    verify_facemaps_for_object(context.object)
     with managed_bmesh_edit(context.edit_object) as bm:
         faces = [f for f in bm.faces if f.select]
         deselect(faces)

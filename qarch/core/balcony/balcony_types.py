@@ -30,6 +30,7 @@ from ...utils import (
     managed_bmesh_edit,
     crash_safe,
     deselect,
+    verify_facemaps_for_object,
 )
 
 from ..validations import validate, some_selection, upright_face_validation 
@@ -41,6 +42,7 @@ from ..railing.railing import create_railing
 def build_balcony(context, props):
     """ Create Balcony from context and prop, with validations. Intented to be called directly from operator.
     """
+    verify_facemaps_for_object(context.object)
     with managed_bmesh_edit(context.edit_object) as bm:
         faces = [f for f in bm.faces if f.select]
         deselect(faces)

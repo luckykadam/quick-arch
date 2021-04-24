@@ -47,6 +47,7 @@ from ..railing.railing import create_railing
 def build_stairs(context, props):
     """ Create Stairs from context and prop, with validations. Intented to be called directly from operator.
     """
+    verify_facemaps_for_object(context.object)
     with managed_bmesh_edit(context.edit_object) as bm:
         faces = [f for f in bm.faces if f.select]
         deselect(faces)
