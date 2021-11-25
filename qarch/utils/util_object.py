@@ -25,7 +25,7 @@ def bmesh_from_active_object(context=None):
     yield bm
 
     if context.mode == "EDIT_MESH":
-        bmesh.update_edit_mesh(me, True)
+        bmesh.update_edit_mesh(me, loop_triangles=True)
     elif context.mode == "OBJECT":
         bm_to_obj(bm, context.object)
 
@@ -57,7 +57,7 @@ def import_obj(path, name):
 def import_blend(path, linked=True):
     """ Import object exported with up=Z and forward=X
     """
-    with bpy.data.libraries.load(path, linked) as (data_from, data_to):
+    with bpy.data.libraries.load(path, link=linked) as (data_from, data_to):
         data_to.objects = data_from.objects
         if hasattr(data_from, "groups") and data_from.groups:
             data_to.groups = data_from.groups
