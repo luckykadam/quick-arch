@@ -103,9 +103,9 @@ class QARCH_PT_material_tools(bpy.types.Panel):
             sub.operator("object.face_map_select", text="Select")
             sub.operator("object.face_map_deselect", text="Deselect")
 
-        if ob.face_maps:
-            face_map_index = ob.face_maps.active_index
-            face_map_material = ob.facemap_materials[face_map_index]
+        # if ob.face_maps:
+        #     face_map_index = ob.face_maps.active_index
+        #     face_map_material = ob.facemap_materials[face_map_index]
 
             # layout.label(text="UV Mapping")
 
