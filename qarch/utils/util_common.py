@@ -76,10 +76,16 @@ def crash_safe(func):
 
 
 def get_limits(wall_dimensions, opposite_wall_dimensions, relative_offset):
-    left_limit = max(0, wall_dimensions[0]/2-(opposite_wall_dimensions[0]/2-relative_offset[0])) + 0.01
-    right_limit = wall_dimensions[0]-max(0, wall_dimensions[0]/2-opposite_wall_dimensions[0]/2-relative_offset[0]) - 0.01
-    bottom_limit = min(0, wall_dimensions[1]/2-(opposite_wall_dimensions[1]/2-relative_offset[1])) + 0.01
-    top_limit = wall_dimensions[1]-max(0, wall_dimensions[1]/2-opposite_wall_dimensions[1]/2-relative_offset[1]) - 0.01
+    if Vector(relative_offset).length<=0.5:
+        left_limit = max(0, wall_dimensions[0]/2-(opposite_wall_dimensions[0]/2-relative_offset[0])) + 0.01
+        right_limit = wall_dimensions[0]-max(0, wall_dimensions[0]/2-opposite_wall_dimensions[0]/2-relative_offset[0]) - 0.01
+        bottom_limit = min(0, wall_dimensions[1]/2-(opposite_wall_dimensions[1]/2-relative_offset[1])) + 0.01
+        top_limit = wall_dimensions[1]-max(0, wall_dimensions[1]/2-opposite_wall_dimensions[1]/2-relative_offset[1]) - 0.01
+    else:
+        left_limit = 0.01
+        right_limit = wall_dimensions[0] - 0.01
+        bottom_limit = 0.01
+        top_limit = wall_dimensions[1] - 0.01
     return (left_limit,right_limit,bottom_limit,top_limit)
 
 

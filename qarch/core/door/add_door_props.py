@@ -48,21 +48,21 @@ class AddDoorProperty(bpy.types.PropertyGroup):
             col.label(text="Door")
             self.door.draw(context, col)
 
-            layout.separator()
-            col = layout.column(align=True)
-            col.prop(self, "add_arch")
-            if self.add_arch:
-                self.arch.draw(context, col)
+        layout.separator()
+        col = layout.column(align=True)
+        col.prop(self, "add_arch")
+        if self.add_arch:
+            self.arch.draw(context, col)
 
-            layout.separator()
-            col = layout.column(align=True)
-            if not self.infer_values_switch:
-                col.prop(self, "infer_values_switch", icon="RIGHTARROW", emboss=False)
-            else:
-                col.prop(self, "infer_values_switch", icon="DOWNARROW_HLT", emboss=False)
-                values = infer_values(self, "d")
-                filtered_values = {k:v for k,v in values.items() if k.startswith("Door")}
-                for key,value in filtered_values.items():
-                    row = col.row(align=True)
-                    row.label(text=str(key))
-                    row.label(text=str(value))
+        layout.separator()
+        col = layout.column(align=True)
+        if not self.infer_values_switch:
+            col.prop(self, "infer_values_switch", icon="RIGHTARROW", emboss=False)
+        else:
+            col.prop(self, "infer_values_switch", icon="DOWNARROW_HLT", emboss=False)
+            values = infer_values(self, "d")
+            filtered_values = {k:v for k,v in values.items() if k.startswith("Door")}
+            for key,value in filtered_values.items():
+                row = col.row(align=True)
+                row.label(text=str(key))
+                row.label(text=str(value))

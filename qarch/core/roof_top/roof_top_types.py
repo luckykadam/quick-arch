@@ -54,6 +54,8 @@ def gable_process_open(roof, prop):
     verify_facemaps_for_object(roof)
     with managed_bmesh(roof) as bm:
         top_faces = list(bm.faces)
+        bmesh.ops.reverse_faces(bm, faces=[f for f in top_faces if f.normal.dot(Vector((0,0,1)))<0])
+
         # -- extrude
         _, side_faces, _ = extrude_face_region(bm, top_faces, prop.thickness, Vector((0,0,1)))
         dissolve_edges = list({get_top_edges([e for e in f.edges if e not in filter_vertical_edges(f.edges, f.normal)])[0] for f in side_faces})

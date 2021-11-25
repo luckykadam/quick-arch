@@ -4,7 +4,7 @@ from .core import register_core, unregister_core
 bl_info = {
     "name": "Quick Arch",
     "author": "Lucky Kadam (luckykadam94@gmail.com)",
-    "version": (1, 1, 0),
+    "version": (1, 2, 0),
     "blender": (2, 80, 0),
     "location": "View3D > Toolshelf > Quick Arch",
     "description": "Architectural Tools",
@@ -32,8 +32,9 @@ class QARCH_PT_mesh_tools(bpy.types.Panel):
         row.operator("qarch.add_floorplan")
         row = col.row(align=True)
         row.operator("qarch.add_floors")
-        row = col.row(align=True)
         row.operator("qarch.add_roof")
+        row = col.row(align=True)
+        row.operator("qarch.add_terrace")
         row.operator("qarch.add_roof_top")
 
         col = layout.column(align=True)

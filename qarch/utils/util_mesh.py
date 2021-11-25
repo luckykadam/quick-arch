@@ -235,7 +235,7 @@ def subdivide_edges(bm, edges, direction, widths):
     return inner_edges
 
 
-def arc_edge(bm, edge, resolution, height, xyz, function="SPHERE"):
+def arc_edge(bm, edge, resolution, arc_height, arc_offset, xyz):
     """ Subdivide the given edge and offset vertices to form an arc
     """
     length = edge.calc_length()
@@ -243,24 +243,26 @@ def arc_edge(bm, edge, resolution, height, xyz, function="SPHERE"):
     arc_direction = xyz[1]
     orient = xyz[1] if edge_is_vertical(edge) else xyz[0]
     curved_edges = filter_geom(bmesh.ops.subdivide_edges(bm, edges=[edge], cuts=resolution)["geom_split"], bmesh.types.BMEdge)
-
+    arc_radius = math.sqrt(arc_offset**2 + (length/2)**2)
+    circular_height = arc_radius - arc_offset
     verts = sort_verts(
         list({v for e in curved_edges for v in e.verts}),
         orient
     )
-    theta = math.pi / (len(verts) - 1)
-
-    def arc_sine(verts):
-        for idx, v in enumerate(verts):
-            v.co += arc_direction * math.sin(theta * idx) * height
+    x = length/2
+    theta_offset = math.acos(x/arc_radius)
+    theta = (math.pi - 2 * theta_offset)/ (len(verts)-1)
+    # def arc_sine(verts):
+    #     for idx, v in enumerate(verts):
+    #         v.co += arc_direction * math.sin(theta * idx) * height
 
     def arc_sphere(verts):
         for idx, v in enumerate(verts):
-            angle = math.pi - (theta * idx)
-            v.co = median + orient * math.cos(angle) * length / 2
-            v.co += arc_direction * math.sin(angle) * height
+            angle = math.pi - (theta * idx) - theta_offset
+            v.co = median + orient * math.cos(angle) * arc_radius
+            v.co += arc_direction * ( math.sin(angle) * arc_radius - arc_offset) * (arc_height/circular_height)
 
-    {"SINE": arc_sine, "SPHERE": arc_sphere}.get(function)(verts)
+    arc_sphere(verts)
     return curved_edges
 
 

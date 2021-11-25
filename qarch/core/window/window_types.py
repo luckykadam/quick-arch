@@ -27,6 +27,7 @@ from ...utils import (
     local_xyz,
     align_obj,
     shrink_face,
+    verify_facemaps_for_object,
 )
 from ..frame import create_multigroup_hole, create_multigroup_frame_and_dw
 from ..validations import validate, some_selection, ngon_validation, same_dimensions
@@ -37,6 +38,7 @@ from ..validations import validate, some_selection, ngon_validation, same_dimens
 def build_window(context, props):
     """ Create window from context and prop, with validations. Intented to be called directly from operator.
     """
+    verify_facemaps_for_object(context.object)
     with managed_bmesh_edit(context.edit_object) as bm:
         faces = [f for f in bm.faces if f.select]
         deselect(faces)
@@ -57,7 +59,7 @@ def create_window(bm, faces, prop):
         array_faces = subdivide_face_horizontally(bm, face, widths=[prop.size_offset.size.x]*prop.count)
         for aface in array_faces:
             normal = aface.normal.copy()
-            dw_faces, arch_faces = create_multigroup_hole(bm, aface, prop.size_offset.size, prop.size_offset.offset, 'w', 1, prop.frame.margin, prop.frame.depth, prop.add_arch, prop.arch)
+            dw_faces, arch_faces = create_multigroup_hole(bm, aface, prop.size_offset.size, prop.size_offset.offset, 'w', 1, prop.frame.margin, prop.frame.depth, prop.add_arch, prop.arch, prop.only_hole)
             if prop.only_hole:
                 bmesh.ops.delete(bm, geom=dw_faces+arch_faces, context="FACES")
             else:

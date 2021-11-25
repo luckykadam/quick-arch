@@ -121,9 +121,20 @@ class ArchProperty(bpy.types.PropertyGroup):
         # set=set_height,
         min=0.1,
         max=2.0,
-        default=0.4,
+        default=0.2,
         unit="LENGTH",
         description="Height of the arc",
+    )
+
+    arc_offset: FloatProperty(
+        name="Arc Angle",
+        # get=get_height,
+        # set=set_height,
+        min=0.0,
+        max=4.0,
+        default=0.4,
+        unit="LENGTH",
+        description="Offset of arc center",
     )
 
     thickness: FloatProperty(
@@ -164,7 +175,8 @@ class ArchProperty(bpy.types.PropertyGroup):
             row = col.row(align=True)
             row.prop(self, "function", expand=True)
             col.prop(self, "resolution")
-            col.prop(self, "thickness")
             col.prop(self, "arc_height")
+            col.prop(self, "arc_offset")
+            col.prop(self, "thickness")
 
         self.fill.draw(context, col)

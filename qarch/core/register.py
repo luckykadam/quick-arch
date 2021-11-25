@@ -5,6 +5,7 @@ from .arch import register_arch, unregister_arch
 from .door import register_door, unregister_door
 from .roof_top import register_roof_top, unregister_roof_top
 from .roof import register_roof, unregister_roof
+from .terrace import register_terrace, unregister_terrace
 from .floor import register_floor, unregister_floor
 from .stairs import register_stairs, unregister_stairs
 from .window import register_window, unregister_window
@@ -29,6 +30,7 @@ register_funcs = (
     register_door,
     register_roof_top,
     register_roof,
+    register_terrace,
     register_floor,
     register_window,
     register_stairs,
@@ -48,6 +50,7 @@ unregister_funcs = (
     unregister_door,
     unregister_roof_top,
     unregister_roof,
+    unregister_terrace,
     unregister_floor,
     unregister_window,
     unregister_stairs,
