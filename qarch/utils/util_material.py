@@ -16,6 +16,8 @@ class AutoIndex(Enum):
 class FaceMap(AutoIndex):
     """ Enum provides names for face_maps """
 
+    FACEMAP = auto()  # use up zero and make name for 4.0 attribute
+
     SLABS = auto()
     WALLS = auto()
     FLOOR = auto()
@@ -40,65 +42,131 @@ class FaceMap(AutoIndex):
     ROOF_HANGS = auto()
 
 
-def add_faces_to_map(bm, faces_list, facemaps, obj=None):
-    obj = obj or bpy.context.object
-    for faces, facemap in zip(faces_list, facemaps):
-        face_map = bm.faces.layers.face_map.active
-        group_index = face_map_index_from_name(obj, facemap.name.lower())
-        for face in faces:
-            face[face_map] = group_index
+if bpy.app.version < (4,0,0):
+    def add_faces_to_map(bm, faces_list, facemaps, obj=None):
+        obj = obj or bpy.context.object
+        for faces, facemap in zip(faces_list, facemaps):
+            face_map = bm.faces.layers.face_map.active
+            group_index = face_map_index_from_name(obj, facemap.name.lower())
+            for face in faces:
+                face[face_map] = group_index
 
-        # -- if the facemap already has a material assigned, assign the new faces to the material
-        # mat = obj.facemap_materials[group_index].material
-        # mat_id = [idx for idx, m in enumerate(obj.data.materials) if m == mat]
-        # if mat_id:
-        #     for f in faces:
-        #         f.material_index = mat_id[-1]
-
-
-def add_facemaps(facemaps, obj=None):
-    """ Creates a face_map called group.name.lower if none exists
-        in the active object
-    """
-    obj = obj if obj else bpy.context.object
-
-    for facemap in facemaps:
-        if not obj.face_maps.get(facemap.name.lower()):
-            obj.face_maps.new(name=facemap.name.lower())
-            obj.facemap_materials.add()
+            # -- if the facemap already has a material assigned, assign the new faces to the material
+            # mat = obj.facemap_materials[group_index].material
+            # mat_id = [idx for idx, m in enumerate(obj.data.materials) if m == mat]
+            # if mat_id:
+            #     for f in faces:
+            #         f.material_index = mat_id[-1]
 
 
-def verify_facemaps_for_object(obj):
-    """ Ensure object has a facemap layer """
-    me = get_edit_mesh()
-    bm = bmesh.from_edit_mesh(me)
-    bm.faces.layers.face_map.verify()
-    bmesh.update_edit_mesh(me, loop_triangles=True)
+    def add_facemaps(facemaps, obj=None):
+        """ Creates a face_map called group.name.lower if none exists
+            in the active object
+        """
+        obj = obj if obj else bpy.context.object
+
+        for facemap in facemaps:
+            if not obj.face_maps.get(facemap.name.lower()):
+                obj.face_maps.new(name=facemap.name.lower())
+                obj.facemap_materials.add()
 
 
-def set_material_for_active_facemap(material, context):
-    obj = context.object
-    index = obj.face_maps.active_index
-    active_facemap = obj.face_maps[index]
-
-    link_material(obj, material)
-    mat_id = [
-        idx for idx, mat in enumerate(obj.data.materials) if mat == material
-    ].pop()
-
-    with bmesh_from_active_object(context) as bm:
-
-        face_map = bm.faces.layers.face_map.active
-        for face in bm.faces:
-            if face[face_map] == active_facemap.index:
-                face.material_index = mat_id
+    def verify_facemaps_for_object(obj):
+        """ Ensure object has a facemap layer """
+        me = get_edit_mesh()
+        bm = bmesh.from_edit_mesh(me)
+        bm.faces.layers.face_map.verify()
+        bmesh.update_edit_mesh(me, loop_triangles=True)
 
 
-def face_map_index_from_name(obj, name):
-    for _, fmap in obj.face_maps.items():
-        if fmap.name == name:
-            return fmap.index
-    return -1
+    def set_material_for_active_facemap(material, context):
+        obj = context.object
+        index = obj.face_maps.active_index
+        active_facemap = obj.face_maps[index]
+
+        link_material(obj, material)
+        mat_id = [
+            idx for idx, mat in enumerate(obj.data.materials) if mat == material
+        ].pop()
+
+        with bmesh_from_active_object(context) as bm:
+
+            face_map = bm.faces.layers.face_map.active
+            for face in bm.faces:
+                if face[face_map] == active_facemap.index:
+                    face.material_index = mat_id
+
+
+    def face_map_index_from_name(obj, name):
+        for _, fmap in obj.face_maps.items():
+            if fmap.name == name:
+                return fmap.index
+        return -1
+
+else:  # using face attribute
+    def layer_key(bm):
+        """The key is needed to access the attribute as face[key]
+        """
+        return bm.faces.layers.int[FaceMap.FACEMAP.name]
+
+
+    def add_faces_to_map(bm, faces_list, facemaps, obj=None):
+        key = layer_key(bm)
+        for faces, facemap in zip(faces_list, facemaps):
+            # use enum value as code
+            group_index = facemap.value
+            for face in faces:
+                face[key] = group_index
+
+            # -- if the facemap already has a material assigned, assign the new faces to the material
+            # mat = obj.facemap_materials[group_index].material
+            # mat_id = [idx for idx, m in enumerate(obj.data.materials) if m == mat]
+            # if mat_id:
+            #     for f in faces:
+            #         f.material_index = mat_id[-1]
+
+
+    def add_facemaps(facemaps, obj=None):
+        """ Creates a facemap integer attribute if none exists
+            in the active object
+        """
+        obj = obj if obj else bpy.context.object
+
+        if "facemap" not in obj.data.attributes:
+            key = obj.data.attributes.new(FaceMap.FACEMAP.name, 'INT', 'FACE')
+
+
+    def verify_facemaps_for_object(obj):
+        """ Ensure object has a facemap layer """
+        pass  # add at object creation to not invalidate existing bmesh faces
+
+
+    def get_faces_matching(bm, face_map):
+        faces = [f for f in bm.faces if f.select]
+
+    def set_material_for_active_facemap(material, context):
+        obj = context.object
+        with bmesh_from_active_object(context) as bm:
+            active_face = bm.faces.active
+            if active_face is None:
+                print("No active face")  # TODO, raise exception
+                return
+
+            key = layer_key(bm)
+            index = active_face[key]
+
+            link_material(obj, material)
+            mat_id = [
+                idx for idx, mat in enumerate(obj.data.materials) if mat == material
+            ].pop()
+
+            for face in bm.faces:
+                if face[key] == index:
+                    face.material_index = mat_id
+
+
+    def face_map_index_from_name(obj, name):
+        return FaceMap[name].value
 
 
 def link_material(obj, mat):

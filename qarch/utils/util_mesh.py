@@ -193,7 +193,7 @@ def subdivide_face_vertically(bm, face, widths):
 
 def subdivide_faces(bm, faces, direction, widths):
     if len(widths) < 2:
-        return [face]
+        return faces
     edges = list({e for f in faces for e in f.edges if equal(edge_vector(e).dot(direction), -1) or equal(edge_vector(e).dot(direction), 1)})
     inner_edges = subdivide_edges(bm, edges, direction, widths)
     return sort_faces(list({f for e in inner_edges for f in e.link_faces}), direction)

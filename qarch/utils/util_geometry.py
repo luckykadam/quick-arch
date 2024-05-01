@@ -3,7 +3,7 @@ import itertools as it
 from mathutils import Matrix, Vector
 
 from .util_mesh import face_with_verts
-from .util_material import verify_facemaps_for_object
+from .util_material import verify_facemaps_for_object, FaceMap
 
 
 def cube(bm, width=2, length=2, height=2):
@@ -131,9 +131,13 @@ def new_obj_from_faces(faces, name):
     for f in set(faces):
         bm.faces.new(new_vert[v] for v in f.verts)
     me = bpy.data.meshes.new("Mesh")
-    bm.faces.layers.face_map.verify()
+    if bpy.app.version < (4, 0, 0):
+        bm.faces.layers.face_map.verify()
+    else:
+        bm.faces.layers.int.new(FaceMap.FACEMAP.name)
     bm.to_mesh(me)
     obj = bpy.data.objects.new(name, me)
+
     return obj
 
 
