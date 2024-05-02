@@ -85,8 +85,8 @@ def create_window(bm, faces, prop):
                     link_objects([bars], bpy.context.object.users_collection)
                     make_parent([bars], frame)
                     set_origin(bars, window_origins[0], frame_origin)
-                    with managed_bmesh(bars) as bm:
-                        fill_bars(bm, bars, bm.faces[0], prop.window.bars)
+                    with managed_bmesh(bars) as bm2:
+                        fill_bars(bm2, bars, bm2.faces[0], prop.window.bars)
 
                 # set handle origin, rotations and scale
                 for handle,origin,scale in zip(handles,handle_origins,handle_scales):
