@@ -4,8 +4,8 @@ from .core import register_core, unregister_core
 bl_info = {
     "name": "Quick Arch",
     "author": "Lucky Kadam (luckykadam94@gmail.com)",
-    "version": (1, 2, 0),
-    "blender": (2, 80, 0),
+    "version": (1, 3, 0),
+    "blender": (4, 0, 0),
     "location": "View3D > Toolshelf > Quick Arch",
     "description": "Architectural Tools",
     "warning": "",
