@@ -39,11 +39,11 @@ class WindowProperty(bpy.types.PropertyGroup):
     )
 
     hinge: EnumProperty(
-        name="Hinge", items=[("LEFT", "Hinge Left", "", 0), ("RIGHT", "Hinge Right", "", 1)], default="LEFT", description="Hinge"
+        name="Hinge", items=[("LEFT", "Hinge Left", "", 0), ("RIGHT", "Hinge Right", "", 1), ("TOP", "Hinge Top", "", 2)], default="LEFT", description="Hinge"
     )
 
     handle: EnumProperty(
-        name="Handle", items=[("ROUND", "Round Handle", "", 0), ("STRAIGHT", "Straight Handle", "", 1)], default="ROUND", description="Handle Type"
+        name="Handle", items=[("NONE", "No Handle", "", 0), ("ROUND", "Round Handle", "", 1), ("STRAIGHT", "Straight Handle", "", 2)], default="ROUND", description="Handle Type"
     )
 
     add_bars: BoolProperty(name="Add Bars", default=False, description="Bars")
