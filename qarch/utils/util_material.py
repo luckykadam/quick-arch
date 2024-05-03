@@ -141,19 +141,19 @@ else:  # using face attribute
         pass  # add at object creation to not invalidate existing bmesh faces
 
 
-    def get_faces_matching(bm, face_map):
-        faces = [f for f in bm.faces if f.select]
-
-    def set_material_for_active_facemap(material, context):
+    def set_material_for_active_facemap(material, context, active_facemap=None):
         obj = context.object
         with bmesh_from_active_object(context) as bm:
-            active_face = bm.faces.active
-            if active_face is None:
-                print("No active face")  # TODO, raise exception
-                return
-
             key = layer_key(bm)
-            index = active_face[key]
+
+            if active_facemap is None:
+                active_face = bm.faces.active or bm.faces[0]
+                if active_face is None:
+                    print("No active face")  # TODO, raise exception
+                    return
+                index = active_face[key]
+            else:
+                index = active_facemap
 
             link_material(obj, material)
             mat_id = [
@@ -164,6 +164,30 @@ else:  # using face attribute
                 if face[key] == index:
                     face.material_index = mat_id
 
+
+    def set_facemap_for_selected(active_facemap, context):
+        with bmesh_from_active_object(context) as bm:
+            key = layer_key(bm)
+
+            for face in bm.faces:
+                if face.select:
+                    face[key] = active_facemap
+
+    def select_facemap(active_facemap, context):
+        with bmesh_from_active_object(context) as bm:
+            key = layer_key(bm)
+
+            for face in bm.faces:
+                if face[key] == active_facemap:
+                    face.select_set(True)
+
+    def deselect_facemap(active_facemap, context):
+        with bmesh_from_active_object(context) as bm:
+            key = layer_key(bm)
+
+            for face in bm.faces:
+                if face[key] == active_facemap:
+                    face.select_set(False)
 
     def face_map_index_from_name(obj, name):
         return FaceMap[name].value

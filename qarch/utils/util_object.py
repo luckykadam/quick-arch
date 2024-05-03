@@ -20,14 +20,16 @@ def bmesh_from_active_object(context=None):
         me = get_edit_mesh()
         bm = bmesh.from_edit_mesh(me)
     elif context.mode == "OBJECT":
-        bm = bm_from_obj(context.object)
+        bm = bmesh.new()  # create an empty BMesh
+        bm.from_mesh(context.object.data)  # fill it in from a Mesh
 
     yield bm
 
     if context.mode == "EDIT_MESH":
         bmesh.update_edit_mesh(me, loop_triangles=True)
     elif context.mode == "OBJECT":
-        bm_to_obj(bm, context.object)
+        bm.to_mesh(context.object.data)
+        bm.free()
 
 
 def link_objects(objs, collections):
