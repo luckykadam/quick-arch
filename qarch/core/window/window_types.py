@@ -1,4 +1,4 @@
-import bpy, bmesh
+import bpy, bmesh, mathutils, math
 import os
 from pathlib import Path
 
@@ -64,7 +64,7 @@ def create_window(bm, faces, prop):
                 bmesh.ops.delete(bm, geom=dw_faces+arch_faces, context="FACES")
             else:
                 _, (window_faces,bar_faces,window_origins), (arch_faces,arch_origins), (frame_faces,frame_origin) = create_multigroup_frame_and_dw(bm, dw_faces, arch_faces, prop.frame, 'w', None, prop.window, prop.add_arch, prop.arch)
-                handles,handle_origins,handle_scales = add_handles(window_faces, window_origins, prop.window.thickness, prop.window.handle, prop.window.flip_direction)
+                handles,handle_origins,handle_scales = add_handles(window_faces, window_origins, prop.window.thickness, prop.window.handle, prop.window.flip_direction, prop.window.hinge)
                 windows = split_faces(bm, [[f] for f in window_faces], ["Window" for f in window_faces])
                 frame = split_faces(bm, [frame_faces], ["Frame"])[0]
                 # link objects and set origins
@@ -73,8 +73,9 @@ def create_window(bm, faces, prop):
                 link_objects(windows, bpy.context.object.users_collection)
                 make_parent(windows, frame)
                 for handle,window in zip(handles,windows):
-                    # link_objects(handle, window)
-                    make_parent(handle, window)
+                    if handle[0] is not None:
+                        # link_objects(handle, window)
+                        make_parent(handle, window)
                 set_origin(frame, frame_origin)
                 for window,origin in zip(windows,window_origins):
                     set_origin(window, origin, frame_origin)
@@ -85,14 +86,18 @@ def create_window(bm, faces, prop):
                     link_objects([bars], bpy.context.object.users_collection)
                     make_parent([bars], frame)
                     set_origin(bars, window_origins[0], frame_origin)
-                    with managed_bmesh(bars) as bm:
-                        fill_bars(bm, bars, bm.faces[0], prop.window.bars)
+                    with managed_bmesh(bars) as bm2:
+                        fill_bars(bm2, bars, bm2.faces[0], prop.window.bars)
 
                 # set handle origin, rotations and scale
                 for handle,origin,scale in zip(handles,handle_origins,handle_scales):
-                    handle[0].matrix_local.translation = origin[0]
-                    align_obj(handle[0], normal)
-                    handle[0].scale = scale[0]
+                    if handle[0] is not None:
+                        handle[0].matrix_local.translation = origin[0]
+                        align_obj(handle[0], normal)
+                        handle[0].scale = scale[0]
+                        if prop.window.handle == "STRAIGHT" and prop.window.hinge == "TOP":
+                            quat_b = mathutils.Quaternion(normal, math.radians(90.0))
+                            handle[0].rotation_quaternion = quat_b @ handle[0].rotation_quaternion
 
                 # create arch
                 if prop.add_arch:
@@ -122,12 +127,17 @@ def fill_window(window, prop):
         fill_face(bm, window, front[0], back[0], prop.window.fill)
 
 
-def add_handles(window_faces, window_origins, window_thickness, handle_type, flip=False):
+def add_handles(window_faces, window_origins, window_thickness, handle_type, flip=False, hinge="LEFT"):
     handles = []
     handle_origins = []
     handle_scales = []
     for window_face,window_origin in zip(window_faces,window_origins):
         directory = Path(os.path.dirname(__file__)).parent.parent
+        if handle_type == "NONE":
+            handles.append([None])
+            handle_origins.append([None])
+            handle_scales.append([None])
+            continue
         if handle_type == "STRAIGHT":
             handle_front = import_blend(os.path.join(directory, 'assets', 'handle_straight.blend'))[0]
             # handle_back = import_blend(os.path.join(directory, 'assets', 'handle_straight.blend'))[0]
@@ -136,7 +146,7 @@ def add_handles(window_faces, window_origins, window_thickness, handle_type, fli
             # handle_back = import_blend(os.path.join(directory, 'assets', 'handle_round.blend'))[0]
         xyz = local_xyz(window_face)
         window_width,_ = calc_face_dimensions(window_face)
-        hinge = "LEFT" if local_xyz(window_face)[0].dot(window_origin-window_face.calc_center_bounds()) < 0 else "RIGHT"
+        #hinge = "LEFT" if local_xyz(window_face)[0].dot(window_origin-window_face.calc_center_bounds()) < 0 else "RIGHT"
         if hinge == "LEFT":
             handle_origin_front = xyz[0] * (window_width-0.06) + xyz[1] * 0.5 + xyz[2] * window_thickness
             # handle_origin_back = xyz[0] * (window_width-0.06) + xyz[1] * 0.5
@@ -147,6 +157,9 @@ def add_handles(window_faces, window_origins, window_thickness, handle_type, fli
             # handle_origin_back = - xyz[0] * (window_width-0.06) + xyz[1] * 0.5
             handle_front_scale = (1,1,-1) if flip else (1,1,1)
             # handle_back_scale = (1,1,1) if flip else (1,1,-1)
+        elif hinge == "TOP":
+            handle_origin_front = - xyz[0] * window_width * 0.5 + xyz[1] * 0.06 + xyz[2] * window_thickness
+            handle_front_scale = (1, 1, -1) if flip else (1, 1, 1)
         handles.append([handle_front])
         handle_origins.append([handle_origin_front])
         handle_scales.append([handle_front_scale])

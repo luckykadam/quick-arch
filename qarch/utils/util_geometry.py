@@ -3,7 +3,7 @@ import itertools as it
 from mathutils import Matrix, Vector
 
 from .util_mesh import face_with_verts
-from .util_material import verify_facemaps_for_object
+from .util_material import verify_facemaps_for_object, FaceMap, create_object_material
 
 
 def cube(bm, width=2, length=2, height=2):
@@ -114,6 +114,8 @@ def split_faces(original_bm, faces_list, objs_name_list, delete_original=True):
     all_faces = []
     for faces,name in zip(faces_list, objs_name_list):
         obj = new_obj_from_faces(faces, name)
+        if bpy.app.version >= (4, 0, 0):  # need a zero index material
+            mat = create_object_material(obj, "Default")
         objs.append(obj)
         verify_facemaps_for_object(obj)
         all_faces += faces
@@ -131,9 +133,15 @@ def new_obj_from_faces(faces, name):
     for f in set(faces):
         bm.faces.new(new_vert[v] for v in f.verts)
     me = bpy.data.meshes.new("Mesh")
-    bm.faces.layers.face_map.verify()
+    if bpy.app.version < (4, 0, 0):
+        bm.faces.layers.face_map.verify()
+    else:
+        bm.faces.layers.int.new(FaceMap.FACEMAP.name)
     bm.to_mesh(me)
     obj = bpy.data.objects.new(name, me)
+    if bpy.app.version >= (4, 0, 0):  # need a zero index material
+        mat = create_object_material(obj, "Default")
+
     return obj
 
 
